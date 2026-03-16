@@ -1,0 +1,73 @@
+---
+---
+
+<section class="py-20 bg-background-light" id="modelo">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold text-slate-900 mb-4">Modelo de Negocio</h2>
+      <p class="text-slate-600">Nuestro proceso es simple, ágil y totalmente digital.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+      <!-- Paso 1 -->
+      <div class="relative">
+        <div class="flex flex-col items-center text-center">
+          <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mb-6 text-2xl font-bold shadow-lg shadow-primary/20">
+            1
+          </div>
+          <h3 class="font-bold text-xl mb-2">Solicitar</h3>
+          <p class="text-slate-600 text-sm">Completa tu perfil empresarial en nuestra plataforma en minutos.</p>
+        </div>
+        <div class="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-0.5 bg-slate-200"></div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="relative">
+        <div class="flex flex-col items-center text-center">
+          <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mb-6 text-2xl font-bold shadow-lg shadow-primary/20">
+            2
+          </div>
+          <h3 class="font-bold text-xl mb-2">Análisis</h3>
+          <p class="text-slate-600 text-sm">Evaluamos tu historial y capacidad crediticia.</p>
+        </div>
+        <div class="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-0.5 bg-slate-200"></div>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="relative">
+        <div class="flex flex-col items-center text-center">
+          <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mb-6 text-2xl font-bold shadow-lg shadow-primary/20">
+            3
+          </div>
+          <h3 class="font-bold text-xl mb-2">Financiamos</h3>
+          <p class="text-slate-600 text-sm">Pagamos directamente a tus proveedores de forma inmediata.</p>
+        </div>
+        <div class="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-0.5 bg-slate-200"></div>
+      </div>
+
+      <!-- Paso 4 -->
+      <div class="relative">
+        <div class="flex flex-col items-center text-center">
+          <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center mb-6 text-2xl font-bold shadow-lg shadow-primary/20">
+            4
+          </div>
+          <h3 class="font-bold text-xl mb-2">Paga en cuotas</h3>
+          <p class="text-slate-600 text-sm">Flexibilidad total para pagar según tus ventas mensuales.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-center">
+      <button id="btn-solicitud" class="bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary/90 transition-all shadow-lg cursor-pointer">
+        Empezar mi Solicitud
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('btn-solicitud')?.addEventListener('click', () => {
+    document.getElementById('modal-login')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  });
+</script>

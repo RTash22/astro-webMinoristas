@@ -1,0 +1,54 @@
+---
+import Star from '../icons/Star.astro';
+
+const testimonios = [
+  {
+    quote: "Pudimos duplicar nuestro inventario para la temporada navideña sin descapitalizarnos. El proceso fue increíblemente rápido.",
+    name: "Adrian Muñiz",
+    role: "Retail Textil",
+    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuC7iIXjIPuNGSUSqnvDextCU1evPxikskbGwRtzFrB_OVCHGOZyFdMKW7fj7RXm1Odp-IZhqHqDUdYGttrI2vfoNGpo7u6MZRkqs6QT63oxDWMnBaugk7xdL6C4Azbl8mbdT5fZJ8_fFk1FrMdsW3AZia9wSlmFFun6glpSqweqdoDjOCoHb_NxUBXbcM9IK2cMoHB6DnaCcSKgJZNyprg2byxi-Qidzskqguy34yTVhI4sc1fdWMDzouB_LtoeZ6HHq43lnaElLLM",
+  },
+  {
+    quote: "El mejor aliado para el flujo de caja. Pagamos a nuestros proveedores a tiempo y nosotros manejamos cuotas cómodas.",
+    name: "Haziel Gomez",
+    role: "Retail",
+    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDbsd843FeOOTkMh06jcrQfC0kcMLxzTqKfY0WyZc5WPTpt_QA1crYkrrycKwG4U8rSPR6OPffuuAGOPxhK0DcK-bMxA1VhxiTSCmWVu-kj14yaY2rxDEJv9IdAEJsOWS9tgR3t26AVmP4Jzy_p9_VQ4iMv0VnP8rrDBV7_qgWaevPOWF_yoPGW92_Q_QBk4BxW8iInPMiDdoy8nqWge-pW7q_Qgr3gKpuVUZ0LsRAne2znOOtAsRdy47pJzOjaeGbNscWwDm0BBoI",
+  },
+  {
+    quote: "La tecnología que usan para evaluar el crédito es sorprendente. En menos de 24 horas ya teníamos la aprobación.",
+    name: "Danna Paola",
+    role: "Mueblería",
+    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDrboVeVWtNoHsGaC0n_3bGSSMWvKbcdqawIlnuNuD_kDvv-2UiykjjhswUQoV2t2APuVREKXZUIKvcmv-wqocfHgDmM2zL-9grIfd0P8jErQWS1itsbwW95kwq_PzYneXi2Vs8yJX5clMOjgU8EXjihr0rMxcoGVLt-hFuyxzFE0oSJ8L1EK5dtcihvW7LjsizeTFoIkWhFh3KVAv2bvCANn0Wf42ZrHpQpp2fkThLHFUEb-A93ZXnzX81hM_yOsUzbTdwl4NpD6s",
+  },
+];
+---
+
+<section class="py-20 bg-background-light" id="testimonios">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold text-slate-900 mb-4">Lo que dicen nuestros socios</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {testimonios.map((t) => (
+        <div class="p-8 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex gap-1 text-yellow-400 mb-4">
+            {Array.from({ length: 5 }).map(() => (
+              <Star class="size-5" />
+            ))}
+          </div>
+          <p class="text-slate-600 italic mb-6">"{t.quote}"</p>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
+              <img alt={t.name} class="w-full h-full object-cover" src={t.avatar} />
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">{t.name}</p>
+              <p class="text-sm text-slate-500">{t.role}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

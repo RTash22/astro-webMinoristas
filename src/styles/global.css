@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #002466;
+  --color-background-light: #f5f6f8;
+  --color-background-dark: #0f1623;
+  --font-display: "Inter", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem; /* compensa el header sticky (h-16) */
+}

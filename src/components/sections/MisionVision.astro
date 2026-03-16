@@ -1,0 +1,43 @@
+---
+import RocketLaunch from '../icons/RocketLaunch.astro';
+import Flag from '../icons/Flag.astro';
+import Visibility from '../icons/Visibility.astro';
+import AutoGraph from '../icons/AutoGraph.astro';
+---
+
+<section class="py-20 bg-white" id="mision">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <!-- Misión -->
+      <div class="p-10 rounded-3xl bg-primary text-white shadow-xl relative overflow-hidden group">
+        <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
+          <RocketLaunch class="size-48" />
+        </div>
+        <h3 class="text-3xl font-bold mb-6 flex items-center gap-3">
+          <Flag class="size-7" />
+          Misión
+        </h3>
+        <p class="text-lg leading-relaxed text-blue-50">
+          Empoderar a los retailers pequeños y medianos proporcionándoles herramientas financieras innovadoras
+          que les permitan competir en igualdad de condiciones, eliminando las restricciones de capital de trabajo.
+        </p>
+      </div>
+
+      <!-- Visión -->
+      <div class="p-10 rounded-3xl border-2 border-primary/10 bg-slate-50 shadow-xl relative overflow-hidden group">
+        <div class="absolute -right-10 -bottom-10 text-primary opacity-5 group-hover:scale-110 transition-transform duration-700">
+          <Visibility class="size-48" />
+        </div>
+        <h3 class="text-3xl font-bold mb-6 text-primary flex items-center gap-3">
+          <AutoGraph class="size-7" />
+          Visión
+        </h3>
+        <p class="text-lg leading-relaxed text-slate-600">
+          Convertirnos en el aliado estratégico líder en servicios financieros para el sector retail en
+          Latinoamérica, siendo reconocidos por nuestra agilidad tecnológica y compromiso con el crecimiento
+          económico regional.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+import Header from '../components/sections/Header.astro';
+import Hero from '../components/sections/Hero.astro';
+import SobreNosotros from '../components/sections/SobreNosotros.astro';
+import ModeloNegocio from '../components/sections/ModeloNegocio.astro';
+import MisionVision from '../components/sections/MisionVision.astro';
+import Testimonios from '../components/sections/Testimonios.astro';
+import Contacto from '../components/sections/Contacto.astro';
+import Footer from '../components/sections/Footer.astro';
+---
+
+<Layout
+  title="FinRetail - BNPL para el sector Retail"
+  description="BNPL especializado para el sector retail. Optimiza tu flujo de trabajo con nuestras soluciones financieras."
+>
+  <Header />
+  <main>
+    <Hero />
+    <SobreNosotros />
+    <ModeloNegocio />
+    <MisionVision />
+    <Testimonios />
+    <Contacto />
+  </main>
+  <Footer />
+</Layout>

@@ -1,0 +1,81 @@
+---
+import LocationOn from '../icons/LocationOn.astro';
+import Mail from '../icons/Mail.astro';
+import Call from '../icons/Call.astro';
+import MapIcon from '../icons/MapIcon.astro';
+import LinkedIn from '../icons/LinkedIn.astro';
+import Twitter from '../icons/Twitter.astro';
+---
+
+<section class="py-20 bg-white" id="contacto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <!-- Info de contacto -->
+      <div>
+        <h2 class="text-3xl font-bold text-slate-900 mb-6">Ponte en contacto</h2>
+        <p class="text-slate-600 mb-10">
+          ¿Tienes dudas sobre cómo podemos ayudarte? Nuestro equipo de expertos está listo para asesorarte.
+        </p>
+
+        <div class="space-y-6">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <LocationOn class="size-5" />
+            </div>
+            <div>
+              <p class="font-bold">Dirección</p>
+              <p class="text-slate-600">Cuarta Avenida 408 Col. Laguna de la Puerta</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Mail class="size-5" />
+            </div>
+            <div>
+              <p class="font-bold">Email</p>
+              <p class="text-slate-600">contacto@finretail.com</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Call class="size-5" />
+            </div>
+            <div>
+              <p class="font-bold">Teléfono</p>
+              <p class="text-slate-600">+56 2 2345 6789</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social links -->
+        <div class="mt-10 flex gap-4">
+          <a
+            class="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all text-slate-600"
+            href="#"
+            aria-label="LinkedIn"
+          >
+            <LinkedIn class="size-5" />
+          </a>
+          <a
+            class="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all text-slate-600"
+            href="#"
+            aria-label="Twitter"
+          >
+            <Twitter class="size-5" />
+          </a>
+        </div>
+      </div>
+
+      <!-- Mapa placeholder -->
+      <div class="h-[400px] rounded-2xl overflow-hidden bg-slate-200 relative">
+        <div class="absolute inset-0 bg-slate-200 flex flex-col items-center justify-center text-slate-500">
+          <MapIcon class="size-16 mb-4" />
+          <p class="font-bold">Google Maps Placeholder</p>
+          <p class="text-sm">Ubicación: Santiago de Chile</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

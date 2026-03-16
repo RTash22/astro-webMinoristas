@@ -1,0 +1,415 @@
+---
+import AccountBalance from '../icons/AccountBalance.astro';
+import Menu from '../icons/Menu.astro';
+import Mail from '../icons/Mail.astro';
+import Lock from '../icons/Lock.astro';
+import Visibility from '../icons/Visibility.astro';
+import EyeOff from '../icons/EyeOff.astro';
+import Close from '../icons/Close.astro';
+import Person from '../icons/Person.astro';
+import ArrowForward from '../icons/ArrowForward.astro';
+---
+
+<!-- ─── HEADER ─────────────────────────────────────────── -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <AccountBalance class="text-primary size-8" />
+        <span class="text-xl font-bold tracking-tight text-primary">EMPRESA</span>
+      </div>
+
+      <!-- Nav desktop -->
+      <nav class="hidden md:flex items-center gap-6">
+        <a class="text-sm font-medium hover:text-primary transition-colors" href="#inicio">Inicio</a>
+        <a class="text-sm font-medium hover:text-primary transition-colors" href="#sobre-nosotros">Sobre Nosotros</a>
+        <a class="text-sm font-medium hover:text-primary transition-colors" href="#modelo">Modelo de Negocio</a>
+        <a class="text-sm font-medium hover:text-primary transition-colors" href="#mision">Misión</a>
+        <a class="text-sm font-medium hover:text-primary transition-colors" href="#testimonios">Testimonios</a>
+        <button
+          id="open-login"
+          class="ml-4 text-sm font-bold text-primary border border-primary px-5 py-2 rounded-lg hover:bg-primary/5 transition-all cursor-pointer"
+        >
+          Iniciar Sesión
+        </button>
+        <button
+          id="open-register"
+          class="flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-bold text-white hover:bg-primary/90 transition-all cursor-pointer"
+        >
+          Registrarse
+        </button>
+      </nav>
+
+      <!-- Hamburger mobile -->
+      <button
+        id="mobile-menu-btn"
+        class="md:hidden p-2 text-slate-600"
+        aria-label="Abrir menú"
+      >
+        <Menu class="size-6" />
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white">
+    <nav class="flex flex-col gap-1 px-4 py-4">
+      <a class="text-sm font-medium py-2 hover:text-primary transition-colors" href="#inicio">Inicio</a>
+      <a class="text-sm font-medium py-2 hover:text-primary transition-colors" href="#sobre-nosotros">Sobre Nosotros</a>
+      <a class="text-sm font-medium py-2 hover:text-primary transition-colors" href="#modelo">Modelo de Negocio</a>
+      <a class="text-sm font-medium py-2 hover:text-primary transition-colors" href="#mision">Misión</a>
+      <a class="text-sm font-medium py-2 hover:text-primary transition-colors" href="#testimonios">Testimonios</a>
+      <div class="flex flex-col gap-2 pt-2 border-t border-slate-100 mt-2">
+        <button
+          id="open-login-mobile"
+          class="text-sm font-bold text-primary border border-primary px-5 py-2 rounded-lg hover:bg-primary/5 transition-all text-center cursor-pointer w-full"
+        >
+          Iniciar Sesión
+        </button>
+        <button
+          id="open-register-mobile"
+          class="flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-bold text-white hover:bg-primary/90 transition-all cursor-pointer w-full"
+        >
+          Registrarse
+        </button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── MODAL LOGIN ────────────────────────────────────── -->
+<div
+  id="modal-login"
+  class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+  aria-modal="true"
+  role="dialog"
+>
+  <div class="w-full max-w-[440px] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
+    <!-- Header modal -->
+    <div class="p-8 pb-0">
+      <div class="flex items-start justify-between mb-8">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2 text-primary mb-1">
+            <AccountBalance class="size-8" />
+            <span class="text-2xl font-black tracking-tight">EMPRESA</span>
+          </div>
+          <h3 class="text-slate-900 text-2xl font-bold leading-tight">Bienvenido de nuevo</h3>
+          <p class="text-slate-500 text-sm">Ingresa tus credenciales para acceder a tu panel.</p>
+        </div>
+        <button
+          id="close-login"
+          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer shrink-0 mt-1"
+          aria-label="Cerrar"
+        >
+          <Close class="size-5" />
+        </button>
+      </div>
+
+      <!-- Campos -->
+      <div class="flex flex-col gap-5">
+        <!-- Email -->
+        <div class="flex flex-col gap-2">
+          <label class="text-slate-700 text-sm font-semibold">Correo electrónico</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+              <Mail class="size-5" />
+            </div>
+            <input
+              class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              placeholder="nombre@empresa.com"
+              type="email"
+            />
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="flex flex-col gap-2">
+          <label class="text-slate-700 text-sm font-semibold">Contraseña</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+              <Lock class="size-5" />
+            </div>
+            <input
+              id="login-password"
+              class="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              placeholder="••••••••"
+              type="password"
+            />
+            <button
+              type="button"
+              data-toggle="login-password"
+              class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
+              aria-label="Mostrar contraseña"
+            >
+              <Visibility class="size-5 icon-eye-open" />
+              <EyeOff class="size-5 icon-eye-off hidden" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Recordarme / Olvidé -->
+        <div class="flex items-center justify-between py-1">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input
+              class="w-4 h-4 rounded border-slate-300 accent-primary"
+              type="checkbox"
+            />
+            <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Recordarme</span>
+          </label>
+          <a class="text-sm font-semibold text-primary hover:underline" href="#">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <!-- Botón submit -->
+        <button
+          class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-lg transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mt-2 cursor-pointer"
+        >
+          <span>Iniciar Sesión</span>
+          <ArrowForward class="size-5" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Divisor + Google -->
+    <div class="px-8 pt-6 pb-4">
+      <div class="relative flex py-2 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-4 text-slate-400 text-xs font-medium uppercase tracking-wider">O accede con</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+      <button
+        class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all mt-4 group cursor-pointer"
+      >
+        <svg class="w-5 h-5 group-hover:scale-110 transition-transform shrink-0" viewBox="0 0 48 48">
+          <path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/>
+          <path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/>
+          <path d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" fill="#FBBC05"/>
+          <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
+          <path d="M0 0h48v48H0z" fill="none"/>
+        </svg>
+        <span class="text-sm font-semibold text-slate-700">Continuar con Google</span>
+      </button>
+    </div>
+
+    <!-- Footer modal: link a registro -->
+    <div class="bg-slate-50 px-8 py-5 border-t border-slate-100 text-center">
+      <p class="text-sm text-slate-600">
+        ¿No tienes una cuenta?{" "}
+        <button id="switch-to-register" class="text-primary font-bold hover:underline cursor-pointer">Regístrate</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL REGISTRO ─────────────────────────────────── -->
+<div
+  id="modal-register"
+  class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+  aria-modal="true"
+  role="dialog"
+>
+  <div class="w-full max-w-[440px] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
+    <!-- Header modal registro -->
+    <div class="p-8 pb-0">
+      <div class="flex items-start justify-between mb-8">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2 text-primary mb-1">
+            <AccountBalance class="size-8" />
+            <span class="text-2xl font-black tracking-tight">EMPRESA</span>
+          </div>
+          <h3 class="text-slate-900 text-2xl font-bold leading-tight">Crear cuenta</h3>
+          <p class="text-slate-500 text-sm">Completa los datos para acceder a nuestra plataforma.</p>
+        </div>
+        <button
+          id="close-register"
+          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer shrink-0 mt-1"
+          aria-label="Cerrar"
+        >
+          <Close class="size-5" />
+        </button>
+      </div>
+
+      <!-- Campos -->
+      <div class="flex flex-col gap-5">
+        <!-- Nombre administrador -->
+        <div class="flex flex-col gap-2">
+          <label class="text-slate-700 text-sm font-semibold">Nombre del administrador</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+              <Person class="size-5" />
+            </div>
+            <input
+              class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              placeholder="Juan García"
+              type="text"
+            />
+          </div>
+        </div>
+
+        <!-- Correo corporativo -->
+        <div class="flex flex-col gap-2">
+          <label class="text-slate-700 text-sm font-semibold">Correo electrónico corporativo</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+              <Mail class="size-5" />
+            </div>
+            <input
+              class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              placeholder="juan@empresa.com"
+              type="email"
+            />
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="flex flex-col gap-2">
+          <label class="text-slate-700 text-sm font-semibold">Contraseña</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+              <Lock class="size-5" />
+            </div>
+            <input
+              id="register-password"
+              class="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              placeholder="••••••••"
+              type="password"
+            />
+            <button
+              type="button"
+              data-toggle="register-password"
+              class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
+              aria-label="Mostrar contraseña"
+            >
+              <Visibility class="size-5 icon-eye-open" />
+              <EyeOff class="size-5 icon-eye-off hidden" />
+            </button>
+          </div>
+          <p class="text-xs text-slate-400">Mínimo 8 caracteres. Usa letras, números y símbolos.</p>
+        </div>
+
+        <!-- Términos -->
+        <label class="flex items-start gap-2 cursor-pointer group">
+          <input
+            class="w-4 h-4 mt-0.5 shrink-0 rounded border-slate-300 accent-primary"
+            type="checkbox"
+          />
+          <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+            Acepto los <a href="#" class="text-primary font-semibold hover:underline">Términos y Condiciones</a> y la <a href="#" class="text-primary font-semibold hover:underline">Política de Privacidad</a>
+          </span>
+        </label>
+
+        <!-- Botón submit -->
+        <button
+          class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-lg transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mt-2 cursor-pointer"
+        >
+          <span>Crear cuenta</span>
+          <ArrowForward class="size-5" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Divisor + Google -->
+    <div class="px-8 pt-6 pb-4">
+      <div class="relative flex py-2 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-4 text-slate-400 text-xs font-medium uppercase tracking-wider">O regístrate con</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+      <button
+        class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all mt-4 group cursor-pointer"
+      >
+        <svg class="w-5 h-5 group-hover:scale-110 transition-transform shrink-0" viewBox="0 0 48 48">
+          <path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/>
+          <path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/>
+          <path d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" fill="#FBBC05"/>
+          <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
+          <path d="M0 0h48v48H0z" fill="none"/>
+        </svg>
+        <span class="text-sm font-semibold text-slate-700">Continuar con Google</span>
+      </button>
+    </div>
+
+    <!-- Footer modal: link a login -->
+    <div class="bg-slate-50 px-8 py-5 border-t border-slate-100 text-center">
+      <p class="text-sm text-slate-600">
+        ¿Ya tienes una cuenta?{" "}
+        <button id="switch-to-login" class="text-primary font-bold hover:underline cursor-pointer">Iniciar Sesión</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Helpers ─────────────────────────────────────────────
+  const $ = (id: string) => document.getElementById(id);
+
+  const modalLogin    = $('modal-login');
+  const modalRegister = $('modal-register');
+
+  function openModal(modal: HTMLElement | null) {
+    modal?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(modal: HTMLElement | null) {
+    modal?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // ── Botones abrir ────────────────────────────────────────
+  $('open-login')?.addEventListener('click',          () => openModal(modalLogin));
+  $('open-login-mobile')?.addEventListener('click',   () => openModal(modalLogin));
+  $('open-register')?.addEventListener('click',       () => openModal(modalRegister));
+  $('open-register-mobile')?.addEventListener('click',() => openModal(modalRegister));
+
+  // ── Botones cerrar ───────────────────────────────────────
+  $('close-login')?.addEventListener('click',    () => closeModal(modalLogin));
+  $('close-register')?.addEventListener('click', () => closeModal(modalRegister));
+
+  // ── Cambiar entre modales ────────────────────────────────
+  $('switch-to-register')?.addEventListener('click', () => {
+    closeModal(modalLogin);
+    openModal(modalRegister);
+  });
+  $('switch-to-login')?.addEventListener('click', () => {
+    closeModal(modalRegister);
+    openModal(modalLogin);
+  });
+
+  // ── Cerrar al hacer click en el fondo ────────────────────
+  [modalLogin, modalRegister].forEach(modal => {
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal(modal);
+    });
+  });
+
+  // ── Cerrar con Escape ────────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal(modalLogin);
+      closeModal(modalRegister);
+    }
+  });
+
+  // ── Toggle show/hide password ────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inputId = btn.dataset.toggle!;
+      const input   = document.getElementById(inputId) as HTMLInputElement | null;
+      const eyeOpen = btn.querySelector<SVGElement>('.icon-eye-open');
+      const eyeOff  = btn.querySelector<SVGElement>('.icon-eye-off');
+
+      if (!input) return;
+
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      eyeOpen?.classList.toggle('hidden', isPassword);
+      eyeOff?.classList.toggle('hidden', !isPassword);
+    });
+  });
+
+  // ── Menú móvil ───────────────────────────────────────────
+  $('mobile-menu-btn')?.addEventListener('click', () => {
+    $('mobile-menu')?.classList.toggle('hidden');
+  });
+</script>

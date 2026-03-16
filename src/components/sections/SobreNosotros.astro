@@ -1,0 +1,40 @@
+---
+import Groups from '../icons/Groups.astro';
+import Payments from '../icons/Payments.astro';
+import LocalShipping from '../icons/LocalShipping.astro';
+---
+
+<section class="py-20 bg-white" id="sobre-nosotros">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold text-slate-900 mb-4">Sobre Nosotros</h2>
+      <p class="text-slate-600 max-w-3xl mx-auto text-lg">
+        En EMPRESA, revolucionamos la forma en que los minoristas adquieren inventario mediante el modelo
+        Buy Now, Pay Later (BNPL) para empresas, eliminando las barreras de liquidez.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Stat 1 -->
+      <div class="flex flex-col items-center p-8 rounded-2xl border border-slate-100 bg-background-light hover:border-primary/50 transition-colors">
+        <Groups class="text-primary size-10 mb-4" />
+        <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Clientes activos</p>
+        <p class="text-4xl font-black text-slate-900 mt-2">30+</p>
+      </div>
+
+      <!-- Stat 2 -->
+      <div class="flex flex-col items-center p-8 rounded-2xl border border-slate-100 bg-background-light hover:border-primary/50 transition-colors">
+        <Payments class="text-primary size-10 mb-4" />
+        <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Aspira un crédito de más de</p>
+        <p class="text-4xl font-black text-slate-900 mt-2">$2,000,000</p>
+      </div>
+
+      <!-- Stat 3 -->
+      <div class="flex flex-col items-center p-8 rounded-2xl border border-slate-100 bg-background-light hover:border-primary/50 transition-colors">
+        <LocalShipping class="text-primary size-10 mb-4" />
+        <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Proveedores</p>
+        <p class="text-4xl font-black text-slate-900 mt-2">120</p>
+      </div>
+    </div>
+  </div>
+</section>
