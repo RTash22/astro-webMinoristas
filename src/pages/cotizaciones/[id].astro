@@ -1,0 +1,430 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { supabase } from '../../db/supabase';
+
+const clienteId = Astro.cookies.get('id_cliente')?.value;
+const solicitudId = Astro.params.id;
+
+// Fetch solicitud
+const { data: solicitud } = await supabase
+  .from('solicitudes_cotizacion')
+  .select('*')
+  .eq('id_solicitud', solicitudId)
+  .eq('id_cliente', clienteId)
+  .single();
+
+if (!solicitud) {
+  return Astro.redirect('/cotizaciones');
+}
+
+// Fetch cotizaciones with product details
+const { data: cotizaciones } = await supabase
+  .from('cotizaciones_downlabs')
+  .select(`
+    *,
+    catalogo_productos (
+      id_producto,
+      nombre_articulo,
+      categoria,
+      descripcion,
+      imagen_url,
+      materiales
+    )
+  `)
+  .eq('id_solicitud', solicitudId)
+  .order('created_at', { ascending: true });
+
+const allCotizaciones = cotizaciones || [];
+const aceptadas = allCotizaciones.filter(c => c.estado === 'aceptada');
+const rechazadas = allCotizaciones.filter(c => c.estado === 'rechazada');
+const pendientesCot = allCotizaciones.filter(c => c.estado === 'pendiente' || c.estado === 'enviada');
+
+// Calculate totals
+const subtotal = aceptadas.reduce((sum, c) => sum + (Number(c.precio_final_cliente) || 0) * (c.cantidad || 1), 0);
+const envio = aceptadas.reduce((sum, c) => sum + (Number(c.costo_envio) || 0), 0);
+const interes = solicitud.interes_propuesto || 15;
+const plazo = solicitud.plazo_propuesto_meses || 3;
+const montoConInteres = subtotal * (1 + interes / 100);
+const pagoMensual = plazo > 0 ? montoConInteres / plazo : montoConInteres;
+
+const specs = solicitud.especificaciones_req || {};
+const specKeys = Object.keys(specs);
+
+const isActionable = solicitud.estado_solicitud === 'respondida';
+const isCompleted = solicitud.estado_solicitud === 'completada';
+
+const estadoIcons: Record<string, string> = {
+  'pendiente': 'schedule',
+  'en proceso': 'sync',
+  'cotizada': 'description',
+  'respondida': 'check_circle',
+  'completada': 'verified',
+};
+---
+
+<DashboardLayout title="Detalle de Cotización" activeNav="cotizaciones">
+  <!-- ─── Back nav ─────────────────────────────────── -->
+  <div class="mb-6 animate-fade-in-up">
+    <a href="/cotizaciones" class="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors">
+      <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+      Volver a Cotizaciones
+    </a>
+  </div>
+
+  <!-- ─── Header ───────────────────────────────────── -->
+  <div class="glass-card p-6 sm:p-8 mb-6 animate-fade-in-up stagger-1">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3 mb-3">
+          <div class={`w-12 h-12 rounded-xl flex items-center justify-center ${
+            solicitud.estado_solicitud === 'pendiente' ? 'bg-warning/15' :
+            solicitud.estado_solicitud === 'en proceso' ? 'bg-info/15' :
+            solicitud.estado_solicitud === 'cotizada' ? 'bg-primary/15' :
+            solicitud.estado_solicitud === 'respondida' ? 'bg-success/15' :
+            'bg-success/20'
+          }`}>
+            <span class={`material-symbols-rounded text-xl ${
+              solicitud.estado_solicitud === 'pendiente' ? 'text-warning' :
+              solicitud.estado_solicitud === 'en proceso' ? 'text-info' :
+              solicitud.estado_solicitud === 'cotizada' ? 'text-primary' :
+              solicitud.estado_solicitud === 'respondida' ? 'text-success' :
+              'text-success'
+            }`}>{estadoIcons[solicitud.estado_solicitud] || 'description'}</span>
+          </div>
+          <div>
+            <span class={`badge badge-${solicitud.estado_solicitud?.replace(' ', '-')}`}>
+              {solicitud.estado_solicitud}
+            </span>
+            <span class={`badge badge-${solicitud.nivel_urgencia} ml-1`}>
+              <span class="material-symbols-rounded text-[12px]">flag</span>
+              Urgencia: {solicitud.nivel_urgencia}
+            </span>
+          </div>
+        </div>
+
+        <h1 class="text-xl sm:text-2xl font-black text-text-primary mb-2">{solicitud.descripcion_articulo}</h1>
+        <p class="text-sm text-text-muted">
+          Creada el {new Date(solicitud.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </div>
+    </div>
+
+    {specKeys.length > 0 && (
+      <div class="mt-5 pt-5 border-t border-outline">
+        <h3 class="text-sm font-semibold text-text-secondary mb-3">Especificaciones solicitadas</h3>
+        <div class="flex flex-wrap gap-2">
+          {specKeys.map(key => (
+            <span class="inline-flex items-center gap-1.5 text-sm bg-surface-3 text-text-secondary px-3 py-1.5 rounded-lg">
+              <span class="font-bold text-text-primary">{key}:</span> {specs[key]}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- ─── Status timeline ──────────────────────────── -->
+  <div class="glass-card p-6 mb-6 animate-fade-in-up stagger-2">
+    <h2 class="text-sm font-semibold text-text-secondary mb-4">Progreso de la solicitud</h2>
+    <div class="flex items-center gap-1 overflow-x-auto pb-2">
+      {['pendiente', 'en proceso', 'cotizada', 'respondida', 'completada'].map((estado, i) => {
+        const currentIndex = ['pendiente', 'en proceso', 'cotizada', 'respondida', 'completada'].indexOf(solicitud.estado_solicitud);
+        const isActive = i <= currentIndex;
+        const isCurrent = estado === solicitud.estado_solicitud;
+
+        return (
+          <>
+            <div class={`flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap ${isCurrent ? 'bg-primary/10 border border-primary/30' : isActive ? 'bg-success/5' : ''}`}>
+              <span class={`material-symbols-rounded text-[18px] ${isCurrent ? 'text-primary' : isActive ? 'text-success' : 'text-text-muted'}`}>
+                {isActive && !isCurrent ? 'check_circle' : estadoIcons[estado]}
+              </span>
+              <span class={`text-xs font-semibold ${isCurrent ? 'text-primary' : isActive ? 'text-success' : 'text-text-muted'}`}>
+                {estado}
+              </span>
+            </div>
+            {i < 4 && (
+              <div class={`w-6 h-0.5 shrink-0 ${isActive && i < currentIndex ? 'bg-success' : 'bg-outline'}`}></div>
+            )}
+          </>
+        );
+      })}
+    </div>
+  </div>
+
+  {/* ─── Products cotizados ────────────────────────── */}
+  {allCotizaciones.length > 0 && (
+    <div class="animate-fade-in-up stagger-3">
+      <h2 class="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+        <span class="material-symbols-rounded text-primary">shopping_cart</span>
+        Productos Cotizados ({allCotizaciones.length})
+      </h2>
+
+      <div class="space-y-4 mb-6">
+        {allCotizaciones.map(cot => {
+          const producto = cot.catalogo_productos;
+          const total = (Number(cot.precio_final_cliente) || 0) * (cot.cantidad || 1);
+          const isAccepted = cot.estado === 'aceptada';
+          const isRejected = cot.estado === 'rechazada';
+
+          return (
+            <div class={`glass-card p-5 flex flex-col sm:flex-row gap-4 ${isRejected ? 'opacity-50' : ''} ${isAccepted ? 'border-success/30' : ''}`}>
+              {/* Product image */}
+              <div class="w-full sm:w-24 h-32 sm:h-24 rounded-xl bg-surface-3 overflow-hidden shrink-0">
+                {producto?.imagen_url ? (
+                  <img src={producto.imagen_url} alt={producto.nombre_articulo} class="w-full h-full object-cover" />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center">
+                    <span class="material-symbols-rounded text-text-muted text-3xl">image</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Product details */}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 class="text-base font-bold text-text-primary">{producto?.nombre_articulo || 'Producto'}</h3>
+                    <p class="text-sm text-text-muted mt-1">{producto?.categoria || ''}</p>
+                    {producto?.descripcion && (
+                      <p class="text-sm text-text-secondary mt-2 line-clamp-2">{producto.descripcion}</p>
+                    )}
+                  </div>
+                  <div>
+                    {isAccepted && <span class="badge badge-respondida">Aceptado por proveedor</span>}
+                    {isRejected && <span class="badge badge-rechazada">Rechazado por proveedor</span>}
+                    {!isAccepted && !isRejected && <span class="badge badge-pendiente">Pendiente</span>}
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-outline/50">
+                  <div>
+                    <p class="text-xs text-text-muted">Precio unitario</p>
+                    <p class="text-lg font-black text-primary">${Number(cot.precio_final_cliente || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-text-muted">Cantidad</p>
+                    <p class="text-lg font-black text-text-primary">{cot.cantidad || 1}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-text-muted">Subtotal</p>
+                    <p class="text-lg font-black text-text-primary">${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  {Number(cot.costo_envio) > 0 && (
+                    <div>
+                      <p class="text-xs text-text-muted">Envío</p>
+                      <p class="text-sm font-semibold text-text-secondary">+${Number(cot.costo_envio).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  )}
+                </div>
+
+                {cot.notas_operador && (
+                  <div class="mt-3 p-3 rounded-lg bg-surface-3/50 border border-outline/50">
+                    <p class="text-xs text-text-muted mb-1">Nota del operador:</p>
+                    <p class="text-sm text-text-secondary">{cot.notas_operador}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ─── Totals + Accept/Reject ──────────────────── */}
+      {(isActionable || isCompleted) && aceptadas.length > 0 && (
+        <div class="glass-card p-6 sm:p-8 animate-fade-in-up stagger-4">
+          <h2 class="text-lg font-bold text-text-primary mb-5 flex items-center gap-2">
+            <span class="material-symbols-rounded text-primary">receipt_long</span>
+            Resumen de Cotización
+          </h2>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between text-sm">
+              <span class="text-text-secondary">Subtotal ({aceptadas.length} productos)</span>
+              <span class="text-text-primary font-semibold">${subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </div>
+            {envio > 0 && (
+              <div class="flex justify-between text-sm">
+                <span class="text-text-secondary">Envío</span>
+                <span class="text-text-primary font-semibold">+${envio.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            <div class="flex justify-between text-sm">
+              <span class="text-text-secondary">Interés ({interes}%)</span>
+              <span class="text-warning font-semibold">+${(subtotal * interes / 100).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div class="border-t border-outline my-2"></div>
+            <div class="flex justify-between">
+              <span class="text-text-primary font-bold">Total con interés</span>
+              <span class="text-xl font-black text-primary">${(montoConInteres + envio).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+
+          <div class="glass-card p-5 mb-6" style="border-color: rgba(129,140,248,0.3);">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="material-symbols-rounded text-primary">credit_card</span>
+              <h3 class="text-base font-bold text-text-primary">Plan de Pago a Crédito</h3>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div>
+                <p class="text-xs text-text-muted">Plazo</p>
+                <p class="text-lg font-black text-text-primary">{plazo} meses</p>
+              </div>
+              <div>
+                <p class="text-xs text-text-muted">Pago mensual</p>
+                <p class="text-lg font-black text-success">${pagoMensual.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div>
+                <p class="text-xs text-text-muted">Tasa de interés</p>
+                <p class="text-lg font-black text-warning">{interes}%</p>
+              </div>
+            </div>
+          </div>
+
+          {isActionable && (
+            <div class="flex flex-col sm:flex-row gap-3" id="action-buttons">
+              <button id="btn-aceptar" class="btn-primary flex-1 cursor-pointer">
+                <span class="material-symbols-rounded text-[20px]">check_circle</span>
+                <span id="aceptar-text">Aceptar Cotización</span>
+                <span id="aceptar-spinner" class="hidden material-symbols-rounded animate-spin">progress_activity</span>
+              </button>
+              <button id="btn-rechazar" class="btn-danger flex-1 cursor-pointer">
+                <span class="material-symbols-rounded text-[20px]">cancel</span>
+                <span id="rechazar-text">Rechazar Cotización</span>
+                <span id="rechazar-spinner" class="hidden material-symbols-rounded animate-spin">progress_activity</span>
+              </button>
+            </div>
+          )}
+
+          {isCompleted && (
+            <div class="flex items-center gap-3 p-4 rounded-xl bg-success/10 border border-success/30">
+              <span class="material-symbols-rounded text-success text-2xl">verified</span>
+              <div>
+                <p class="text-sm font-bold text-success">Cotización Aceptada</p>
+                <p class="text-xs text-text-muted">Los pedidos fueron creados exitosamente. Ve a Mis Pedidos para ver el progreso.</p>
+              </div>
+              <a href="/pedidos" class="btn-primary !py-2 !px-4 ml-auto">
+                Ver Pedidos
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* ─── Waiting state ──────────────────────────────── */}
+  {allCotizaciones.length === 0 && (
+    <div class="glass-card p-12 text-center animate-fade-in-up stagger-3">
+      <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-rounded text-primary text-4xl">hourglass_top</span>
+      </div>
+      <h2 class="text-xl font-bold text-text-primary mb-2">Esperando cotización</h2>
+      <p class="text-text-secondary mb-2">Nuestro equipo está buscando las mejores opciones para tu solicitud.</p>
+      <p class="text-sm text-text-muted">Te notificaremos cuando la cotización esté lista.</p>
+    </div>
+  )}
+
+  <!-- ─── Confirm modals ───────────────────────────── -->
+  <div id="confirm-accept" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card p-8 max-w-md w-full text-center animate-fade-in-up">
+      <div class="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-rounded text-success text-3xl">check_circle</span>
+      </div>
+      <h2 class="text-xl font-bold text-text-primary mb-2">¿Aceptar cotización?</h2>
+      <p class="text-sm text-text-secondary mb-6">
+        Se crearán los pedidos a crédito por un total de <strong class="text-primary">${(montoConInteres + envio).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong> en <strong>{plazo} mensualidades</strong> de <strong class="text-success">${pagoMensual.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong>.
+      </p>
+      <div class="flex gap-3 justify-center">
+        <button id="cancel-accept" class="btn-secondary cursor-pointer">Cancelar</button>
+        <button id="confirm-accept-btn" class="btn-primary cursor-pointer">Sí, aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-reject" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card p-8 max-w-md w-full text-center animate-fade-in-up">
+      <div class="w-16 h-16 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-rounded text-danger text-3xl">cancel</span>
+      </div>
+      <h2 class="text-xl font-bold text-text-primary mb-2">¿Rechazar cotización?</h2>
+      <p class="text-sm text-text-secondary mb-6">La solicitud volverá a estado pendiente para que nuestro equipo pueda enviar una nueva cotización.</p>
+      <div class="flex gap-3 justify-center">
+        <button id="cancel-reject" class="btn-secondary cursor-pointer">Cancelar</button>
+        <button id="confirm-reject-btn" class="btn-danger cursor-pointer">Sí, rechazar</button>
+      </div>
+    </div>
+  </div>
+
+<script define:vars={{ solicitudId }}>
+  const $ = (id) => document.getElementById(id);
+
+  // Accept flow
+  $('btn-aceptar')?.addEventListener('click', () => {
+    $('confirm-accept')?.classList.remove('hidden');
+  });
+  $('cancel-accept')?.addEventListener('click', () => {
+    $('confirm-accept')?.classList.add('hidden');
+  });
+  $('confirm-accept-btn')?.addEventListener('click', async () => {
+    $('confirm-accept')?.classList.add('hidden');
+    $('aceptar-text').textContent = 'Procesando...';
+    $('aceptar-spinner')?.classList.remove('hidden');
+    $('btn-aceptar').disabled = true;
+    $('btn-rechazar').disabled = true;
+
+    try {
+      const res = await fetch(`/api/cotizaciones/${solicitudId}/aceptar`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error al aceptar');
+        $('aceptar-text').textContent = 'Aceptar Cotización';
+        $('aceptar-spinner')?.classList.add('hidden');
+        $('btn-aceptar').disabled = false;
+        $('btn-rechazar').disabled = false;
+      }
+    } catch {
+      alert('Error de conexión');
+      $('aceptar-text').textContent = 'Aceptar Cotización';
+      $('aceptar-spinner')?.classList.add('hidden');
+      $('btn-aceptar').disabled = false;
+      $('btn-rechazar').disabled = false;
+    }
+  });
+
+  // Reject flow
+  $('btn-rechazar')?.addEventListener('click', () => {
+    $('confirm-reject')?.classList.remove('hidden');
+  });
+  $('cancel-reject')?.addEventListener('click', () => {
+    $('confirm-reject')?.classList.add('hidden');
+  });
+  $('confirm-reject-btn')?.addEventListener('click', async () => {
+    $('confirm-reject')?.classList.add('hidden');
+    $('rechazar-text').textContent = 'Procesando...';
+    $('rechazar-spinner')?.classList.remove('hidden');
+    $('btn-rechazar').disabled = true;
+    $('btn-aceptar').disabled = true;
+
+    try {
+      const res = await fetch(`/api/cotizaciones/${solicitudId}/rechazar`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.href = '/cotizaciones';
+      } else {
+        alert(data.error || 'Error al rechazar');
+      }
+    } catch {
+      alert('Error de conexión');
+    }
+  });
+
+  // Close modals on backdrop
+  ['confirm-accept', 'confirm-reject'].forEach(id => {
+    $(id)?.addEventListener('click', (e) => {
+      if (e.target === $(id)) $(id)?.classList.add('hidden');
+    });
+  });
+</script>
+</DashboardLayout>

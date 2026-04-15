@@ -1,0 +1,186 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { supabase } from '../../db/supabase';
+
+const clienteId = Astro.cookies.get('id_cliente')?.value;
+
+// Fetch all solicitudes for this client
+const { data: solicitudes } = await supabase
+  .from('solicitudes_cotizacion')
+  .select('*')
+  .eq('id_cliente', clienteId)
+  .order('created_at', { ascending: false });
+
+const allSolicitudes = solicitudes || [];
+
+// Group by estado
+const estados = ['pendiente', 'en proceso', 'cotizada', 'respondida', 'completada'];
+const estadoLabels: Record<string, string> = {
+  'pendiente': 'Pendientes',
+  'en proceso': 'En Proceso',
+  'cotizada': 'Cotizadas',
+  'respondida': 'Listas',
+  'completada': 'Completadas',
+};
+const estadoIcons: Record<string, string> = {
+  'pendiente': 'schedule',
+  'en proceso': 'sync',
+  'cotizada': 'description',
+  'respondida': 'check_circle',
+  'completada': 'verified',
+};
+---
+
+<DashboardLayout title="Mis Cotizaciones" activeNav="cotizaciones">
+  <!-- ─── Page Header ───────────────────────────────── -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-fade-in-up">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-text-primary">Mis Cotizaciones</h1>
+      <p class="text-text-muted text-sm mt-1">{allSolicitudes.length} solicitudes en total</p>
+    </div>
+    <a href="/solicitudes/nueva" class="btn-primary">
+      <span class="material-symbols-rounded text-[20px]">add_circle</span>
+      Nueva Solicitud
+    </a>
+  </div>
+
+  <!-- ─── Filter Tabs ──────────────────────────────── -->
+  <div class="flex gap-2 mb-6 overflow-x-auto pb-2 animate-fade-in-up stagger-1">
+    <button data-filter="all" class="filter-btn active flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer bg-primary/10 text-primary border border-primary/20">
+      <span class="material-symbols-rounded text-[18px]">view_list</span>
+      Todas
+      <span class="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs font-bold">{allSolicitudes.length}</span>
+    </button>
+    {estados.map(estado => {
+      const count = allSolicitudes.filter(s => s.estado_solicitud === estado).length;
+      return (
+        <button data-filter={estado} class={`filter-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer text-text-secondary border border-outline hover:bg-surface-3`}>
+          <span class="material-symbols-rounded text-[18px]">{estadoIcons[estado]}</span>
+          {estadoLabels[estado]}
+          {count > 0 && <span class="bg-surface-3 px-2 py-0.5 rounded-full text-xs font-bold">{count}</span>}
+        </button>
+      );
+    })}
+  </div>
+
+  <!-- ─── Solicitudes List ─────────────────────────── -->
+  {allSolicitudes.length === 0 ? (
+    <div class="glass-card p-12 text-center animate-fade-in-up stagger-2">
+      <span class="material-symbols-rounded text-text-muted text-6xl mb-4 block">inbox</span>
+      <h2 class="text-xl font-bold text-text-primary mb-2">Sin solicitudes aún</h2>
+      <p class="text-text-secondary mb-6">Crea tu primera solicitud y nuestro equipo buscará las mejores opciones para ti.</p>
+      <a href="/solicitudes/nueva" class="btn-primary inline-flex">
+        <span class="material-symbols-rounded text-[18px]">add</span>
+        Crear primera solicitud
+      </a>
+    </div>
+  ) : (
+    <div class="space-y-4" id="solicitudes-list">
+      {allSolicitudes.map((sol, index) => {
+        const specs = sol.especificaciones_req || {};
+        const specKeys = Object.keys(specs);
+        const estadoClass = sol.estado_solicitud?.replace(' ', '-');
+        const isActionable = sol.estado_solicitud === 'respondida';
+
+        return (
+          <a
+            href={`/cotizaciones/${sol.id_solicitud}`}
+            class={`solicitud-card glass-card glass-card-hover p-5 sm:p-6 flex flex-col sm:flex-row items-start gap-4 animate-fade-in-up ${isActionable ? 'border-success/30' : ''}`}
+            data-estado={sol.estado_solicitud}
+            style={`animation-delay: ${Math.min(index * 0.05, 0.5)}s`}
+          >
+            <!-- Icon -->
+            <div class={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+              sol.estado_solicitud === 'pendiente' ? 'bg-warning/15' :
+              sol.estado_solicitud === 'en proceso' ? 'bg-info/15' :
+              sol.estado_solicitud === 'cotizada' ? 'bg-primary/15' :
+              sol.estado_solicitud === 'respondida' ? 'bg-success/15' :
+              'bg-success/20'
+            }`}>
+              <span class={`material-symbols-rounded text-xl ${
+                sol.estado_solicitud === 'pendiente' ? 'text-warning' :
+                sol.estado_solicitud === 'en proceso' ? 'text-info' :
+                sol.estado_solicitud === 'cotizada' ? 'text-primary' :
+                sol.estado_solicitud === 'respondida' ? 'text-success' :
+                'text-success'
+              }`}>{estadoIcons[sol.estado_solicitud] || 'description'}</span>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <h3 class="text-base font-bold text-text-primary truncate">{sol.descripcion_articulo}</h3>
+                  <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <span class={`badge badge-${estadoClass}`}>
+                      {sol.estado_solicitud}
+                    </span>
+                    <span class={`badge badge-${sol.nivel_urgencia}`}>
+                      <span class="material-symbols-rounded text-[12px]">flag</span>
+                      {sol.nivel_urgencia}
+                    </span>
+                    <span class="text-xs text-text-muted">
+                      {new Date(sol.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+
+                <span class="material-symbols-rounded text-text-muted shrink-0">chevron_right</span>
+              </div>
+
+              {specKeys.length > 0 && (
+                <div class="flex flex-wrap gap-2 mt-3">
+                  {specKeys.slice(0, 3).map(key => (
+                    <span class="inline-flex items-center gap-1 text-xs bg-surface-3 text-text-secondary px-2 py-1 rounded-lg">
+                      <span class="font-semibold text-text-primary">{key}:</span> {specs[key]}
+                    </span>
+                  ))}
+                  {specKeys.length > 3 && (
+                    <span class="text-xs text-text-muted">+{specKeys.length - 3} más</span>
+                  )}
+                </div>
+              )}
+
+              {isActionable && (
+                <div class="mt-3 inline-flex items-center gap-2 text-sm text-success font-semibold">
+                  <span class="material-symbols-rounded text-[16px]">arrow_forward</span>
+                  Cotización lista — Click para revisar
+                </div>
+              )}
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  )}
+
+<script>
+  // ─── Filter tabs ──────────────────────────────────
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.solicitud-card');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+
+      // Update active button
+      filterBtns.forEach(b => {
+        b.classList.remove('bg-primary/10', 'text-primary', 'border-primary/20');
+        b.classList.add('text-text-secondary', 'border-outline');
+      });
+      btn.classList.add('bg-primary/10', 'text-primary', 'border-primary/20');
+      btn.classList.remove('text-text-secondary', 'border-outline');
+
+      // Filter cards
+      cards.forEach(card => {
+        const estado = card.getAttribute('data-estado');
+        if (filter === 'all' || estado === filter) {
+          (card as HTMLElement).style.display = '';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+</DashboardLayout>

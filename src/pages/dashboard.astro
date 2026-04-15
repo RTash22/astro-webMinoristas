@@ -1,0 +1,273 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import { supabase } from '../db/supabase';
+
+const clienteId = Astro.cookies.get('id_cliente')?.value;
+
+// Fetch solicitudes
+const { data: solicitudes } = await supabase
+  .from('solicitudes_cotizacion')
+  .select('*')
+  .eq('id_cliente', clienteId)
+  .order('created_at', { ascending: false });
+
+const allSolicitudes = solicitudes || [];
+
+// Count by estado
+const countByEstado = (estado: string) => allSolicitudes.filter(s => s.estado_solicitud === estado).length;
+const pendientes = countByEstado('pendiente');
+const enProceso = countByEstado('en proceso');
+const cotizadas = countByEstado('cotizada');
+const respondidas = countByEstado('respondida');
+const completadas = countByEstado('completada');
+
+// Fetch pedidos/credits for this client
+const { data: pedidos } = await supabase
+  .from('pedidos_creditos')
+  .select(`
+    *,
+    cotizaciones_downlabs!inner (
+      id_solicitud,
+      solicitudes_cotizacion!inner (
+        id_cliente
+      )
+    )
+  `)
+  .eq('cotizaciones_downlabs.solicitudes_cotizacion.id_cliente', clienteId);
+
+const allPedidos = pedidos || [];
+const pedidosActivos = allPedidos.filter(p => ['en curso', 'aprobado', 'pendiente'].includes(p.estado_credito));
+const montoTotal = allPedidos.reduce((sum, p) => {
+  const monto = Number(p.monto_original) || 0;
+  const interes = Number(p.interes) || 0;
+  return sum + (monto * (1 + interes / 100));
+}, 0);
+
+// Recent solicitudes (last 5)
+const recentSolicitudes = allSolicitudes.slice(0, 5);
+
+// Solicitudes that need attention (respondidas = cotización lista)
+const needsAttention = allSolicitudes.filter(s => s.estado_solicitud === 'respondida');
+---
+
+<DashboardLayout title="Dashboard" activeNav="dashboard">
+  <!-- ─── Page Header ───────────────────────────────── -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-fade-in-up">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-text-primary">Dashboard</h1>
+      <p class="text-text-muted text-sm mt-1">Resumen de tu actividad en DownLabs</p>
+    </div>
+    <a href="/solicitudes/nueva" class="btn-primary">
+      <span class="material-symbols-rounded text-[20px]">add_circle</span>
+      Nueva Solicitud
+    </a>
+  </div>
+
+  <!-- ─── Metric Cards ──────────────────────────────── -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-1">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-warning/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-warning">pending_actions</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">{pendientes + enProceso}</span>
+      </div>
+      <p class="text-sm text-text-muted">Solicitudes Activas</p>
+      <div class="text-xs text-text-muted mt-1">{pendientes} pendientes · {enProceso} en proceso</div>
+    </div>
+
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-2">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-primary">request_quote</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">{respondidas}</span>
+      </div>
+      <p class="text-sm text-text-muted">Cotizaciones Listas</p>
+      {respondidas > 0 && <div class="text-xs text-success mt-1">⬤ {respondidas} por revisar</div>}
+    </div>
+
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-3">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-success">credit_card</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">{pedidosActivos.length}</span>
+      </div>
+      <p class="text-sm text-text-muted">Pedidos Activos</p>
+    </div>
+
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-danger/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-danger">account_balance</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">${montoTotal.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+      </div>
+      <p class="text-sm text-text-muted">Monto Total</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- ─── Needs Attention ────────────────────────── -->
+    {needsAttention.length > 0 && (
+      <div class="lg:col-span-3 glass-card p-6 animate-fade-in-up stagger-2" style="border-color: rgba(52,211,153,0.3);">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center" style="animation: pulse-glow 2s infinite;">
+            <span class="material-symbols-rounded text-success">notifications_active</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-text-primary">Cotizaciones Listas para Revisar</h2>
+            <p class="text-sm text-text-muted">Tienes {needsAttention.length} cotización(es) con respuesta de proveedores</p>
+          </div>
+        </div>
+        <div class="grid gap-3">
+          {needsAttention.map(sol => (
+            <a href={`/cotizaciones/${sol.id_solicitud}`} class="flex items-center justify-between p-4 rounded-xl bg-surface-3/50 hover:bg-surface-4 border border-outline hover:border-success/30 transition-all group">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-text-primary truncate">{sol.descripcion_articulo}</p>
+                <p class="text-xs text-text-muted mt-1">
+                  Creada {new Date(sol.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                </p>
+              </div>
+              <span class="material-symbols-rounded text-success group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- ─── Recent Activity ────────────────────────── -->
+    <div class="lg:col-span-2 glass-card p-6 animate-fade-in-up stagger-3">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-lg font-bold text-text-primary">Actividad Reciente</h2>
+        <a href="/cotizaciones" class="text-sm text-primary hover:underline">Ver todas</a>
+      </div>
+
+      {recentSolicitudes.length === 0 ? (
+        <div class="text-center py-12">
+          <span class="material-symbols-rounded text-text-muted text-5xl mb-3 block">inbox</span>
+          <p class="text-text-muted">No tienes solicitudes aún</p>
+          <a href="/solicitudes/nueva" class="btn-primary mt-4 inline-flex">
+            <span class="material-symbols-rounded text-[18px]">add</span> Crear primera solicitud
+          </a>
+        </div>
+      ) : (
+        <div class="space-y-3">
+          {recentSolicitudes.map(sol => (
+            <a href={`/cotizaciones/${sol.id_solicitud}`} class="flex items-center gap-4 p-4 rounded-xl bg-surface-3/30 hover:bg-surface-3 border border-transparent hover:border-outline transition-all group">
+              <div class={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                sol.estado_solicitud === 'pendiente' ? 'bg-warning/15' :
+                sol.estado_solicitud === 'en proceso' ? 'bg-info/15' :
+                sol.estado_solicitud === 'cotizada' ? 'bg-primary/15' :
+                sol.estado_solicitud === 'respondida' ? 'bg-success/15' :
+                'bg-success/20'
+              }`}>
+                <span class={`material-symbols-rounded ${
+                  sol.estado_solicitud === 'pendiente' ? 'text-warning' :
+                  sol.estado_solicitud === 'en proceso' ? 'text-info' :
+                  sol.estado_solicitud === 'cotizada' ? 'text-primary' :
+                  sol.estado_solicitud === 'respondida' ? 'text-success' :
+                  'text-success'
+                }`}>{
+                  sol.estado_solicitud === 'pendiente' ? 'schedule' :
+                  sol.estado_solicitud === 'en proceso' ? 'sync' :
+                  sol.estado_solicitud === 'cotizada' ? 'description' :
+                  sol.estado_solicitud === 'respondida' ? 'check_circle' :
+                  'verified'
+                }</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-text-primary truncate">{sol.descripcion_articulo}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class={`badge badge-${sol.estado_solicitud?.replace(' ', '-')}`}>
+                    {sol.estado_solicitud}
+                  </span>
+                  <span class="text-xs text-text-muted">
+                    {new Date(sol.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+              <span class="material-symbols-rounded text-text-muted group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <!-- ─── Quick Actions ──────────────────────────── -->
+    <div class="glass-card p-6 animate-fade-in-up stagger-4">
+      <h2 class="text-lg font-bold text-text-primary mb-5">Acciones Rápidas</h2>
+
+      <div class="space-y-3">
+        <a href="/solicitudes/nueva" class="flex items-center gap-3 p-4 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/20 hover:border-primary/40 transition-all group">
+          <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+            <span class="material-symbols-rounded text-primary">add_circle</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-text-primary">Nueva Solicitud</p>
+            <p class="text-xs text-text-muted">Pedir productos</p>
+          </div>
+        </a>
+
+        <a href="/cotizaciones" class="flex items-center gap-3 p-4 rounded-xl bg-surface-3/50 hover:bg-surface-3 border border-outline hover:border-primary/30 transition-all group">
+          <div class="w-10 h-10 rounded-xl bg-info/15 flex items-center justify-center">
+            <span class="material-symbols-rounded text-info">request_quote</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-text-primary">Mis Cotizaciones</p>
+            <p class="text-xs text-text-muted">Revisar y aceptar</p>
+          </div>
+        </a>
+
+        <a href="/pedidos" class="flex items-center gap-3 p-4 rounded-xl bg-surface-3/50 hover:bg-surface-3 border border-outline hover:border-primary/30 transition-all group">
+          <div class="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center">
+            <span class="material-symbols-rounded text-success">credit_card</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-text-primary">Mis Pedidos</p>
+            <p class="text-xs text-text-muted">Pagos y créditos</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Pipeline summary -->
+      <div class="mt-6 pt-5 border-t border-outline">
+        <h3 class="text-sm font-semibold text-text-secondary mb-3">Pipeline</h3>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-text-muted">Pendientes</span>
+            <span class="text-xs font-bold text-warning">{pendientes}</span>
+          </div>
+          <div class="w-full bg-surface-3 rounded-full h-1.5">
+            <div class="bg-warning rounded-full h-1.5 transition-all" style={`width: ${allSolicitudes.length ? (pendientes / allSolicitudes.length * 100) : 0}%`}></div>
+          </div>
+
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-xs text-text-muted">En proceso</span>
+            <span class="text-xs font-bold text-info">{enProceso}</span>
+          </div>
+          <div class="w-full bg-surface-3 rounded-full h-1.5">
+            <div class="bg-info rounded-full h-1.5 transition-all" style={`width: ${allSolicitudes.length ? (enProceso / allSolicitudes.length * 100) : 0}%`}></div>
+          </div>
+
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-xs text-text-muted">Cotizadas</span>
+            <span class="text-xs font-bold text-primary">{cotizadas}</span>
+          </div>
+          <div class="w-full bg-surface-3 rounded-full h-1.5">
+            <div class="bg-primary rounded-full h-1.5 transition-all" style={`width: ${allSolicitudes.length ? (cotizadas / allSolicitudes.length * 100) : 0}%`}></div>
+          </div>
+
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-xs text-text-muted">Completadas</span>
+            <span class="text-xs font-bold text-success">{completadas}</span>
+          </div>
+          <div class="w-full bg-surface-3 rounded-full h-1.5">
+            <div class="bg-success rounded-full h-1.5 transition-all" style={`width: ${allSolicitudes.length ? (completadas / allSolicitudes.length * 100) : 0}%`}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>

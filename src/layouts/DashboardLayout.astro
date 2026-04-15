@@ -1,0 +1,188 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: string;
+}
+
+const { title, description = "DownLabs — Portal de Clientes", activeNav = '' } = Astro.props;
+
+const clienteId = Astro.cookies.get('id_cliente')?.value;
+const clienteNombre = Astro.cookies.get('nombre_empresa')?.value || 'Mi empresa';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} — DownLabs</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-rounded {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- ─── Top Navigation ─────────────────────────────── -->
+    <header class="sticky top-0 z-50 border-b border-outline bg-surface-1/95 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo -->
+          <a href="/dashboard" class="flex items-center gap-2.5 group">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-dark to-primary flex items-center justify-center shadow-lg shadow-primary/20">
+              <span class="material-symbols-rounded text-white text-xl">inventory_2</span>
+            </div>
+            <span class="text-xl font-black tracking-tight text-text-primary group-hover:text-primary transition-colors">Down<span class="text-primary">Labs</span></span>
+          </a>
+
+          <!-- Desktop nav -->
+          <nav class="hidden md:flex items-center gap-1">
+            <a href="/dashboard" class={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeNav === 'dashboard' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-3'}`}>
+              <span class="material-symbols-rounded text-[18px]">dashboard</span>
+              Dashboard
+            </a>
+            <a href="/solicitudes/nueva" class={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeNav === 'nueva-solicitud' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-3'}`}>
+              <span class="material-symbols-rounded text-[18px]">add_circle</span>
+              Nueva Solicitud
+            </a>
+            <a href="/cotizaciones" class={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeNav === 'cotizaciones' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-3'}`}>
+              <span class="material-symbols-rounded text-[18px]">request_quote</span>
+              Cotizaciones
+            </a>
+            <a href="/pedidos" class={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeNav === 'pedidos' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-3'}`}>
+              <span class="material-symbols-rounded text-[18px]">credit_card</span>
+              Pedidos
+            </a>
+          </nav>
+
+          <!-- Right side -->
+          <div class="flex items-center gap-3">
+            <!-- Notifications -->
+            <a href="/notificaciones" class="relative p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-3 transition-all" id="btn-notificaciones">
+              <span class="material-symbols-rounded text-[22px]">notifications</span>
+              <span id="notifications-badge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-surface-1"></span>
+            </a>
+
+            <!-- User dropdown (desktop) -->
+            <div class="hidden md:flex items-center gap-3 pl-3 border-l border-outline">
+              <div class="text-right">
+                <p class="text-sm font-semibold text-text-primary leading-tight" id="user-empresa">{clienteNombre}</p>
+                <p class="text-xs text-text-muted">Cliente</p>
+              </div>
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                <span class="material-symbols-rounded text-primary text-lg">person</span>
+              </div>
+              <form method="POST" action="/api/auth/logout">
+                <button type="submit" class="p-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all" title="Cerrar sesión">
+                  <span class="material-symbols-rounded text-[20px]">logout</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Mobile menu -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-xl text-text-secondary hover:bg-surface-3 transition-all">
+              <span class="material-symbols-rounded text-[24px]">menu</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu panel -->
+      <div id="mobile-menu" class="hidden md:hidden border-t border-outline bg-surface-1">
+        <nav class="flex flex-col gap-1 px-4 py-3">
+          <a href="/dashboard" class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeNav === 'dashboard' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-3'}`}>
+            <span class="material-symbols-rounded text-[20px]">dashboard</span> Dashboard
+          </a>
+          <a href="/solicitudes/nueva" class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeNav === 'nueva-solicitud' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-3'}`}>
+            <span class="material-symbols-rounded text-[20px]">add_circle</span> Nueva Solicitud
+          </a>
+          <a href="/cotizaciones" class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeNav === 'cotizaciones' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-3'}`}>
+            <span class="material-symbols-rounded text-[20px]">request_quote</span> Cotizaciones
+          </a>
+          <a href="/pedidos" class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeNav === 'pedidos' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-3'}`}>
+            <span class="material-symbols-rounded text-[20px]">credit_card</span> Pedidos
+          </a>
+          <div class="border-t border-outline mt-2 pt-2">
+            <div class="flex items-center gap-3 px-4 py-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                <span class="material-symbols-rounded text-primary text-lg">person</span>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-primary">{clienteNombre}</p>
+                <p class="text-xs text-text-muted">Cliente</p>
+              </div>
+            </div>
+            <form method="POST" action="/api/auth/logout" class="px-4">
+              <button type="submit" class="flex items-center gap-3 w-full py-3 text-sm font-medium text-danger hover:bg-danger/10 rounded-xl transition-all px-4">
+                <span class="material-symbols-rounded text-[20px]">logout</span> Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ─── Main Content ───────────────────────────────── -->
+    <main class="flex-1">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <slot />
+      </div>
+    </main>
+
+    <!-- ─── Toast container ────────────────────────────── -->
+    <div id="toast-container"></div>
+
+    <script>
+      // Mobile menu toggle
+      document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+        document.getElementById('mobile-menu')?.classList.toggle('hidden');
+      });
+
+      // Toast utility
+      (window as any).showToast = function(message: string, type: 'success' | 'error' = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 400);
+        }, 3500);
+      };
+
+      // Check notifications
+      async function checkNotifications() {
+        try {
+          const res = await fetch('/api/notificaciones');
+          if (res.ok) {
+            const data = await res.json();
+            const unread = data.filter((n: any) => !n.leida).length;
+            const badge = document.getElementById('notifications-badge');
+            if (badge) {
+              badge.classList.toggle('hidden', unread === 0);
+            }
+          }
+        } catch {}
+      }
+      checkNotifications();
+      setInterval(checkNotifications, 30000);
+    </script>
+  </body>
+</html>

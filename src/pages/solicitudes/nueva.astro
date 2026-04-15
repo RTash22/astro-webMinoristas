@@ -1,0 +1,271 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Nueva Solicitud" activeNav="nueva-solicitud">
+  <!-- ─── Page Header ───────────────────────────────── -->
+  <div class="mb-8 animate-fade-in-up">
+    <a href="/dashboard" class="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4">
+      <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+      Volver al Dashboard
+    </a>
+    <h1 class="text-2xl sm:text-3xl font-black text-text-primary">Nueva Solicitud de Cotización</h1>
+    <p class="text-text-muted text-sm mt-1">Describe los productos que necesitas y nuestro equipo buscará las mejores opciones.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- ─── Form ───────────────────────────────────── -->
+    <div class="lg:col-span-2">
+      <form id="solicitud-form" class="glass-card p-6 sm:p-8 animate-fade-in-up stagger-1">
+        <div id="form-error" class="hidden text-sm text-danger bg-danger/10 border border-danger/30 rounded-lg px-4 py-3 mb-6"></div>
+
+        <!-- Descripción -->
+        <div class="mb-6">
+          <label class="input-label flex items-center gap-2">
+            <span class="material-symbols-rounded text-[18px] text-primary">description</span>
+            Descripción del producto
+          </label>
+          <textarea
+            id="descripcion"
+            class="input-field min-h-[120px] resize-y"
+            placeholder="Ej: Necesito 50 teclados mecánicos RGB para oficina corporativa. Preferentemente con switch cherry mx brown, layout español latinoamericano..."
+            required
+          ></textarea>
+          <p class="text-xs text-text-muted mt-2">Sé lo más específico posible. Incluye marca preferida, uso, cantidad aproximada, etc.</p>
+        </div>
+
+        <!-- Especificaciones -->
+        <div class="mb-6">
+          <label class="input-label flex items-center gap-2">
+            <span class="material-symbols-rounded text-[18px] text-primary">tune</span>
+            Especificaciones técnicas
+          </label>
+          <p class="text-xs text-text-muted mb-3">Agrega campos clave-valor con las características que necesitas.</p>
+
+          <div id="specs-container" class="space-y-3">
+            <!-- Dynamic spec rows will be added here -->
+          </div>
+
+          <button type="button" id="add-spec-btn" class="mt-3 flex items-center gap-2 text-sm text-primary hover:text-primary-light transition-colors cursor-pointer">
+            <span class="material-symbols-rounded text-[18px]">add_circle</span>
+            Agregar especificación
+          </button>
+        </div>
+
+        <!-- Urgencia -->
+        <div class="mb-6">
+          <label class="input-label flex items-center gap-2">
+            <span class="material-symbols-rounded text-[18px] text-primary">flag</span>
+            Nivel de urgencia
+          </label>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="urgencia" value="baja" class="peer hidden" />
+              <div class="p-4 rounded-xl border border-outline text-center transition-all peer-checked:border-success peer-checked:bg-success/10 hover:border-outline-light">
+                <span class="material-symbols-rounded text-success text-2xl mb-1 block">check_circle</span>
+                <p class="text-sm font-semibold text-text-primary">Baja</p>
+                <p class="text-xs text-text-muted">+2 semanas</p>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="urgencia" value="media" class="peer hidden" checked />
+              <div class="p-4 rounded-xl border border-outline text-center transition-all peer-checked:border-warning peer-checked:bg-warning/10 hover:border-outline-light">
+                <span class="material-symbols-rounded text-warning text-2xl mb-1 block">schedule</span>
+                <p class="text-sm font-semibold text-text-primary">Media</p>
+                <p class="text-xs text-text-muted">1-2 semanas</p>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="urgencia" value="alta" class="peer hidden" />
+              <div class="p-4 rounded-xl border border-outline text-center transition-all peer-checked:border-danger peer-checked:bg-danger/10 hover:border-outline-light">
+                <span class="material-symbols-rounded text-danger text-2xl mb-1 block">priority_high</span>
+                <p class="text-sm font-semibold text-text-primary">Alta</p>
+                <p class="text-xs text-text-muted">&lt; 1 semana</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="submit-btn" class="btn-primary w-full sm:w-auto cursor-pointer">
+          <span id="submit-text">Enviar Solicitud</span>
+          <span id="submit-spinner" class="hidden material-symbols-rounded animate-spin">progress_activity</span>
+          <span class="material-symbols-rounded text-[18px]" id="submit-icon">send</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- ─── Tips Sidebar ───────────────────────────── -->
+    <div class="space-y-4 animate-fade-in-up stagger-2">
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+          <span class="material-symbols-rounded text-primary">lightbulb</span>
+          Tips para una buena solicitud
+        </h3>
+        <ul class="space-y-3">
+          <li class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-success text-[18px] mt-0.5 shrink-0">check</span>
+            <p class="text-sm text-text-secondary"><strong class="text-text-primary">Sé específico:</strong> Indica marca, modelo, o características exactas.</p>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-success text-[18px] mt-0.5 shrink-0">check</span>
+            <p class="text-sm text-text-secondary"><strong class="text-text-primary">Cantidad:</strong> Incluye la cantidad exacta o un rango estimado.</p>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-success text-[18px] mt-0.5 shrink-0">check</span>
+            <p class="text-sm text-text-secondary"><strong class="text-text-primary">Uso:</strong> Describe para qué se usará el producto, ayuda a encontrar mejores opciones.</p>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-success text-[18px] mt-0.5 shrink-0">check</span>
+            <p class="text-sm text-text-secondary"><strong class="text-text-primary">Specs:</strong> Usa los campos de especificaciones para detalles técnicos precisos.</p>
+          </li>
+        </ul>
+      </div>
+
+      <div class="glass-card p-6">
+        <h3 class="text-sm font-bold text-text-secondary mb-3 flex items-center gap-2">
+          <span class="material-symbols-rounded text-info text-[18px]">info</span>
+          ¿Qué sigue?
+        </h3>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-warning/15 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="text-xs font-bold text-warning">1</span>
+            </div>
+            <p class="text-sm text-text-secondary">Tu solicitud se envía a nuestro equipo de operadores.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-info/15 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="text-xs font-bold text-info">2</span>
+            </div>
+            <p class="text-sm text-text-secondary">Buscamos entre +500 proveedores las mejores opciones.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="text-xs font-bold text-primary">3</span>
+            </div>
+            <p class="text-sm text-text-secondary">Te enviamos una cotización con precios y plazos de crédito.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-success/15 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="text-xs font-bold text-success">4</span>
+            </div>
+            <p class="text-sm text-text-secondary">Aceptas, recibes tus productos y pagas a plazos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Success modal ────────────────────────────── -->
+  <div id="success-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card p-8 max-w-md w-full text-center animate-fade-in-up">
+      <div class="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-rounded text-success text-3xl">check_circle</span>
+      </div>
+      <h2 class="text-xl font-bold text-text-primary mb-2">¡Solicitud enviada!</h2>
+      <p class="text-sm text-text-secondary mb-6">Tu solicitud fue creada exitosamente. Un operador la atenderá pronto y recibirás una cotización.</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/cotizaciones" class="btn-secondary">Ver mis solicitudes</a>
+        <a href="/dashboard" class="btn-primary">Ir al Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ─── Spec rows management ─────────────────────────
+  const specsContainer = document.getElementById('specs-container')!;
+  let specCount = 0;
+
+  function addSpecRow(key = '', value = '') {
+    specCount++;
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 animate-fade-in';
+    row.innerHTML = `
+      <input class="input-field flex-1" type="text" placeholder="Ej: Tamaño" value="${key}" data-spec="key" />
+      <input class="input-field flex-1" type="text" placeholder="Ej: 27 pulgadas" value="${value}" data-spec="value" />
+      <button type="button" class="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all cursor-pointer remove-spec" aria-label="Eliminar">
+        <span class="material-symbols-rounded text-[20px]">close</span>
+      </button>
+    `;
+    specsContainer.appendChild(row);
+
+    row.querySelector('.remove-spec')?.addEventListener('click', () => {
+      row.remove();
+    });
+  }
+
+  // Add initial row
+  addSpecRow();
+
+  document.getElementById('add-spec-btn')?.addEventListener('click', () => {
+    addSpecRow();
+  });
+
+  // ─── Form submit ──────────────────────────────────
+  document.getElementById('solicitud-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement)?.value;
+    const urgencia = (document.querySelector('input[name="urgencia"]:checked') as HTMLInputElement)?.value || 'media';
+    const errorDiv = document.getElementById('form-error')!;
+    const submitText = document.getElementById('submit-text')!;
+    const submitSpinner = document.getElementById('submit-spinner')!;
+    const submitIcon = document.getElementById('submit-icon')!;
+
+    // Collect specs
+    const specs: Record<string, string> = {};
+    const specRows = specsContainer.querySelectorAll('div');
+    specRows.forEach(row => {
+      const keyInput = row.querySelector('[data-spec="key"]') as HTMLInputElement;
+      const valueInput = row.querySelector('[data-spec="value"]') as HTMLInputElement;
+      if (keyInput?.value?.trim() && valueInput?.value?.trim()) {
+        specs[keyInput.value.trim()] = valueInput.value.trim();
+      }
+    });
+
+    if (!descripcion?.trim()) {
+      errorDiv.textContent = 'La descripción es requerida';
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    errorDiv.classList.add('hidden');
+    submitText.textContent = 'Enviando...';
+    submitSpinner.classList.remove('hidden');
+    submitIcon.classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/solicitudes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          descripcion_articulo: descripcion,
+          especificaciones_req: Object.keys(specs).length > 0 ? specs : {},
+          nivel_urgencia: urgencia,
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorDiv.textContent = data.error || 'Error al crear la solicitud';
+        errorDiv.classList.remove('hidden');
+        submitText.textContent = 'Enviar Solicitud';
+        submitSpinner.classList.add('hidden');
+        submitIcon.classList.remove('hidden');
+        return;
+      }
+
+      // Show success modal
+      document.getElementById('success-modal')?.classList.remove('hidden');
+    } catch (err) {
+      errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+      errorDiv.classList.remove('hidden');
+      submitText.textContent = 'Enviar Solicitud';
+      submitSpinner.classList.add('hidden');
+      submitIcon.classList.remove('hidden');
+    }
+  });
+</script>
+</DashboardLayout>

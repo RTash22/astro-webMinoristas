@@ -1,0 +1,341 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { supabase } from '../../db/supabase';
+
+const clienteId = Astro.cookies.get('id_cliente')?.value;
+
+// Fetch pedidos with related data
+// We need to join pedidos_creditos → cotizaciones_downlabs → solicitudes_cotizacion (to verify client)
+// and also → catalogo_productos (for product info)
+const { data: pedidos } = await supabase
+  .from('pedidos_creditos')
+  .select(`
+    *,
+    cotizaciones_downlabs!inner (
+      id_cotizacion,
+      id_solicitud,
+      precio_final_cliente,
+      cantidad,
+      costo_envio,
+      catalogo_productos (
+        id_producto,
+        nombre_articulo,
+        categoria,
+        imagen_url,
+        descripcion
+      ),
+      solicitudes_cotizacion!inner (
+        id_cliente,
+        descripcion_articulo
+      )
+    )
+  `)
+  .eq('cotizaciones_downlabs.solicitudes_cotizacion.id_cliente', clienteId)
+  .order('created_at', { ascending: false });
+
+const allPedidos = pedidos || [];
+
+const estadoColors: Record<string, string> = {
+  'pendiente': 'warning',
+  'aprobado': 'info',
+  'en curso': 'primary',
+  'completado': 'success',
+  'moroso': 'danger',
+};
+const estadoIcons: Record<string, string> = {
+  'pendiente': 'schedule',
+  'aprobado': 'verified',
+  'en curso': 'sync',
+  'completado': 'check_circle',
+  'moroso': 'warning',
+};
+
+// Summary
+const montoTotalOriginal = allPedidos.reduce((s, p) => s + (Number(p.monto_original) || 0), 0);
+const montoTotalConInteres = allPedidos.reduce((s, p) => {
+  const monto = Number(p.monto_original) || 0;
+  const interes = Number(p.interes) || 0;
+  return s + (monto * (1 + interes / 100));
+}, 0);
+const activos = allPedidos.filter(p => ['pendiente', 'aprobado', 'en curso'].includes(p.estado_credito));
+const completados = allPedidos.filter(p => p.estado_credito === 'completado');
+---
+
+<DashboardLayout title="Mis Pedidos" activeNav="pedidos">
+  <!-- ─── Page Header ───────────────────────────────── -->
+  <div class="mb-8 animate-fade-in-up">
+    <h1 class="text-2xl sm:text-3xl font-black text-text-primary">Mis Pedidos & Créditos</h1>
+    <p class="text-text-muted text-sm mt-1">Gestiona tus pedidos activos y revisa el estado de tus pagos a crédito.</p>
+  </div>
+
+  <!-- ─── Summary Cards ─────────────────────────────── -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-1">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-primary">receipt_long</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">{allPedidos.length}</span>
+      </div>
+      <p class="text-sm text-text-muted">Total Pedidos</p>
+    </div>
+
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-2">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-warning/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-warning">pending_actions</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">{activos.length}</span>
+      </div>
+      <p class="text-sm text-text-muted">Activos</p>
+    </div>
+
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-3">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-success">check_circle</span>
+        </div>
+        <span class="text-2xl font-black text-text-primary">{completados.length}</span>
+      </div>
+      <p class="text-sm text-text-muted">Completados</p>
+    </div>
+
+    <div class="glass-card metric-card p-5 animate-fade-in-up stagger-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-danger/15 flex items-center justify-center">
+          <span class="material-symbols-rounded text-danger">account_balance</span>
+        </div>
+        <span class="text-lg font-black text-text-primary">${montoTotalConInteres.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+      </div>
+      <p class="text-sm text-text-muted">Monto Total</p>
+    </div>
+  </div>
+
+  <!-- ─── Pedidos List ─────────────────────────────── -->
+  {allPedidos.length === 0 ? (
+    <div class="glass-card p-12 text-center animate-fade-in-up">
+      <span class="material-symbols-rounded text-text-muted text-6xl mb-4 block">credit_card_off</span>
+      <h2 class="text-xl font-bold text-text-primary mb-2">Sin pedidos aún</h2>
+      <p class="text-text-secondary mb-6">Cuando aceptes una cotización, tus pedidos a crédito aparecerán aquí.</p>
+      <a href="/cotizaciones" class="btn-primary inline-flex">
+        <span class="material-symbols-rounded text-[18px]">request_quote</span>
+        Ver cotizaciones
+      </a>
+    </div>
+  ) : (
+    <div class="space-y-4">
+      {allPedidos.map((pedido, i) => {
+        const cot = pedido.cotizaciones_downlabs;
+        const producto = cot?.catalogo_productos;
+        const solicitud = cot?.solicitudes_cotizacion;
+        const monto = Number(pedido.monto_original) || 0;
+        const interes = Number(pedido.interes) || 0;
+        const total = monto * (1 + interes / 100);
+        const mensual = pedido.plazo_meses > 0 ? total / pedido.plazo_meses : total;
+        const color = estadoColors[pedido.estado_credito] || 'primary';
+        const icon = estadoIcons[pedido.estado_credito] || 'receipt';
+
+        return (
+          <div class="glass-card glass-card-hover p-5 sm:p-6 animate-fade-in-up" style={`animation-delay: ${Math.min(i * 0.05, 0.5)}s`}>
+            <div class="flex flex-col sm:flex-row gap-4">
+              {/* Product image */}
+              <div class="w-full sm:w-20 h-28 sm:h-20 rounded-xl bg-surface-3 overflow-hidden shrink-0">
+                {producto?.imagen_url ? (
+                  <img src={producto.imagen_url} alt={producto.nombre_articulo} class="w-full h-full object-cover" />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center">
+                    <span class="material-symbols-rounded text-text-muted text-2xl">image</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 class="text-base font-bold text-text-primary">{producto?.nombre_articulo || 'Producto'}</h3>
+                    <p class="text-xs text-text-muted mt-1">{solicitud?.descripcion_articulo || ''}</p>
+                  </div>
+                  <span class={`badge badge-${pedido.estado_credito?.replace(' ', '-')}`}>
+                    <span class={`material-symbols-rounded text-[12px]`}>{icon}</span>
+                    {pedido.estado_credito}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-outline/50">
+                  <div>
+                    <p class="text-xs text-text-muted">Monto original</p>
+                    <p class="text-sm font-bold text-text-primary">${monto.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-text-muted">Interés ({interes}%)</p>
+                    <p class="text-sm font-bold text-warning">${(monto * interes / 100).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-text-muted">Plazo</p>
+                    <p class="text-sm font-bold text-text-primary">{pedido.plazo_meses} meses</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-text-muted">Pago mensual</p>
+                    <p class="text-sm font-bold text-success">${mensual.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </div>
+
+                {/* Rating button for completed pedidos */}
+                {pedido.estado_credito === 'completado' && producto?.id_producto && (
+                  <div class="mt-4 pt-3 border-t border-outline/50">
+                    <button
+                      class="rating-btn btn-secondary !py-2 !px-4 !text-xs cursor-pointer"
+                      data-producto-id={producto.id_producto}
+                      data-producto-nombre={producto.nombre_articulo}
+                    >
+                      <span class="material-symbols-rounded text-[16px]">star</span>
+                      Dejar reseña
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )}
+
+  <!-- ─── Rating Modal ─────────────────────────────── -->
+  <div id="rating-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card p-8 max-w-md w-full animate-fade-in-up">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-text-primary">Dejar Reseña</h2>
+          <p class="text-sm text-text-muted mt-1" id="rating-producto-name">Producto</p>
+        </div>
+        <button id="close-rating" class="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-all cursor-pointer" aria-label="Cerrar">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <form id="rating-form">
+        <input type="hidden" id="rating-producto-id" />
+
+        <!-- Stars -->
+        <div class="mb-4">
+          <label class="input-label">Calificación</label>
+          <div class="flex gap-2" id="star-rating">
+            {[1,2,3,4,5].map(n => (
+              <button type="button" data-star={n} class="star-btn p-1 cursor-pointer text-text-muted hover:text-warning transition-colors">
+                <span class="material-symbols-rounded text-3xl">star</span>
+              </button>
+            ))}
+          </div>
+          <input type="hidden" id="rating-value" value="0" />
+        </div>
+
+        <!-- Comment -->
+        <div class="mb-6">
+          <label class="input-label">Comentario (opcional)</label>
+          <textarea id="rating-comment" class="input-field min-h-[80px] resize-y" placeholder="¿Qué te pareció el producto?"></textarea>
+        </div>
+
+        <button type="submit" id="rating-submit" class="btn-primary w-full cursor-pointer">
+          <span id="rating-btn-text">Enviar Reseña</span>
+          <span id="rating-spinner" class="hidden material-symbols-rounded animate-spin">progress_activity</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+<script>
+  const $ = (id: string) => document.getElementById(id);
+
+  let selectedRating = 0;
+
+  // Star rating interaction
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const star = parseInt(btn.getAttribute('data-star') || '0');
+      selectedRating = star;
+      ($('rating-value') as HTMLInputElement).value = String(star);
+
+      document.querySelectorAll('.star-btn').forEach(b => {
+        const s = parseInt(b.getAttribute('data-star') || '0');
+        const icon = b.querySelector('.material-symbols-rounded');
+        if (icon) {
+          if (s <= star) {
+            icon.style.fontVariationSettings = "'FILL' 1";
+            b.classList.add('text-warning');
+            b.classList.remove('text-text-muted');
+          } else {
+            icon.style.fontVariationSettings = "'FILL' 0";
+            b.classList.remove('text-warning');
+            b.classList.add('text-text-muted');
+          }
+        }
+      });
+    });
+  });
+
+  // Open rating modal
+  document.querySelectorAll('.rating-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const productoId = btn.getAttribute('data-producto-id');
+      const productoNombre = btn.getAttribute('data-producto-nombre');
+      ($('rating-producto-id') as HTMLInputElement).value = productoId || '';
+      $('rating-producto-name')!.textContent = productoNombre || 'Producto';
+      $('rating-modal')?.classList.remove('hidden');
+
+      // Reset stars
+      selectedRating = 0;
+      ($('rating-value') as HTMLInputElement).value = '0';
+      document.querySelectorAll('.star-btn').forEach(b => {
+        const icon = b.querySelector('.material-symbols-rounded') as HTMLElement;
+        if (icon) icon.style.fontVariationSettings = "'FILL' 0";
+        b.classList.remove('text-warning');
+        b.classList.add('text-text-muted');
+      });
+      (document.getElementById('rating-comment') as HTMLTextAreaElement).value = '';
+    });
+  });
+
+  $('close-rating')?.addEventListener('click', () => $('rating-modal')?.classList.add('hidden'));
+  $('rating-modal')?.addEventListener('click', (e) => {
+    if (e.target === $('rating-modal')) $('rating-modal')?.classList.add('hidden');
+  });
+
+  // Submit rating
+  $('rating-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const productoId = ($('rating-producto-id') as HTMLInputElement)?.value;
+    const calificacion = parseInt(($('rating-value') as HTMLInputElement)?.value || '0');
+    const comentario = ($('rating-comment') as HTMLTextAreaElement)?.value;
+
+    if (calificacion < 1) {
+      alert('Selecciona una calificación');
+      return;
+    }
+
+    $('rating-btn-text')!.textContent = 'Enviando...';
+    $('rating-spinner')?.classList.remove('hidden');
+
+    try {
+      const res = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_producto: productoId, calificacion, comentario })
+      });
+
+      if (res.ok) {
+        $('rating-modal')?.classList.add('hidden');
+        (window as any).showToast?.('¡Reseña enviada exitosamente!', 'success');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Error al enviar reseña');
+      }
+    } catch {
+      alert('Error de conexión');
+    }
+    $('rating-btn-text')!.textContent = 'Enviar Reseña';
+    $('rating-spinner')?.classList.add('hidden');
+  });
+</script>
+</DashboardLayout>

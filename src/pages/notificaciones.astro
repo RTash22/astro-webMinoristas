@@ -1,0 +1,90 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import { supabase } from '../db/supabase';
+
+const clienteId = Astro.cookies.get('id_cliente')?.value;
+
+let notificaciones: any[] = [];
+try {
+  const { data } = await supabase
+    .from('notificaciones_cliente')
+    .select('*')
+    .eq('id_cliente', clienteId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  notificaciones = data || [];
+} catch {
+  // Table might not exist
+}
+
+const tipoIcons: Record<string, string> = {
+  'solicitud_atendida': 'sync',
+  'cotizacion_lista': 'check_circle',
+  'pedido_aprobado': 'verified',
+};
+const tipoColors: Record<string, string> = {
+  'solicitud_atendida': 'info',
+  'cotizacion_lista': 'success',
+  'pedido_aprobado': 'primary',
+};
+---
+
+<DashboardLayout title="Notificaciones" activeNav="">
+  <div class="mb-8 animate-fade-in-up">
+    <h1 class="text-2xl sm:text-3xl font-black text-text-primary">Notificaciones</h1>
+    <p class="text-text-muted text-sm mt-1">{notificaciones.length} notificaciones</p>
+  </div>
+
+  {notificaciones.length === 0 ? (
+    <div class="glass-card p-12 text-center animate-fade-in-up">
+      <span class="material-symbols-rounded text-text-muted text-6xl mb-4 block">notifications_off</span>
+      <h2 class="text-xl font-bold text-text-primary mb-2">Sin notificaciones</h2>
+      <p class="text-text-secondary">Recibirás notificaciones cuando tus solicitudes cambien de estado.</p>
+    </div>
+  ) : (
+    <div class="space-y-3">
+      {notificaciones.map((n, i) => {
+        const icon = tipoIcons[n.tipo] || 'notifications';
+        const color = tipoColors[n.tipo] || 'primary';
+
+        return (
+          <div
+            class={`glass-card p-5 flex items-start gap-4 transition-all animate-fade-in-up ${n.leida ? 'opacity-60' : ''}`}
+            style={`animation-delay: ${Math.min(i * 0.05, 0.5)}s`}
+            data-id={n.id_notificacion}
+          >
+            <div class={`w-10 h-10 rounded-xl bg-${color}/15 flex items-center justify-center shrink-0`}>
+              <span class={`material-symbols-rounded text-${color}`}>{icon}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-text-primary">{n.mensaje}</p>
+              <p class="text-xs text-text-muted mt-1">
+                {new Date(n.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+            {!n.leida && (
+              <div class="w-2.5 h-2.5 rounded-full bg-primary shrink-0 mt-1"></div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  )}
+
+<script>
+  // Mark unread notifications as read
+  document.querySelectorAll('.glass-card[data-id]').forEach(async (card) => {
+    const id = card.getAttribute('data-id');
+    const dot = card.querySelector('.bg-primary');
+    if (dot && id) {
+      try {
+        await fetch('/api/notificaciones', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_notificacion: id })
+        });
+      } catch {}
+    }
+  });
+</script>
+</DashboardLayout>

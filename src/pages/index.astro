@@ -1,28 +1,465 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-import Header from '../components/sections/Header.astro';
-import Hero from '../components/sections/Hero.astro';
-import SobreNosotros from '../components/sections/SobreNosotros.astro';
-import ModeloNegocio from '../components/sections/ModeloNegocio.astro';
-import MisionVision from '../components/sections/MisionVision.astro';
-import Testimonios from '../components/sections/Testimonios.astro';
-import Contacto from '../components/sections/Contacto.astro';
-import Footer from '../components/sections/Footer.astro';
+const loginRequired = Astro.url.searchParams.get('login') === 'required';
 ---
 
 <Layout
-  title="FinRetail - BNPL para el sector Retail"
-  description="BNPL especializado para el sector retail. Optimiza tu flujo de trabajo con nuestras soluciones financieras."
+  title="DownLabs — Portal de Clientes B2B"
+  description="Plataforma B2B de adquisición inteligente. Crea solicitudes, recibe cotizaciones y gestiona tus pedidos a crédito."
 >
-  <Header />
-  <main>
-    <Hero />
-    <SobreNosotros />
-    <ModeloNegocio />
-    <MisionVision />
-    <Testimonios />
-    <Contacto />
-  </main>
-  <Footer />
+
+<!-- ─── HEADER ─────────────────────────────────────── -->
+<header class="sticky top-0 z-50 border-b border-outline bg-surface-0/95 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="/" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-dark to-primary flex items-center justify-center shadow-lg shadow-primary/20">
+          <span class="material-symbols-rounded text-white text-xl">inventory_2</span>
+        </div>
+        <span class="text-xl font-black tracking-tight text-text-primary">Down<span class="text-primary">Labs</span></span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6">
+        <a class="text-sm font-medium text-text-secondary hover:text-primary transition-colors" href="#inicio">Inicio</a>
+        <a class="text-sm font-medium text-text-secondary hover:text-primary transition-colors" href="#como-funciona">Cómo Funciona</a>
+        <a class="text-sm font-medium text-text-secondary hover:text-primary transition-colors" href="#beneficios">Beneficios</a>
+        <button id="open-login" class="btn-secondary text-sm !py-2 !px-5 cursor-pointer">Iniciar Sesión</button>
+        <button id="open-register" class="btn-primary text-sm !py-2 !px-5 cursor-pointer">Registrarse</button>
+      </nav>
+      <button id="mobile-menu-btn" class="md:hidden p-2 text-text-secondary" aria-label="Menú">
+        <span class="material-symbols-rounded text-[24px]">menu</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-outline bg-surface-1">
+    <nav class="flex flex-col gap-1 px-4 py-4">
+      <a class="text-sm font-medium py-2 text-text-secondary hover:text-primary transition-colors" href="#inicio">Inicio</a>
+      <a class="text-sm font-medium py-2 text-text-secondary hover:text-primary transition-colors" href="#como-funciona">Cómo Funciona</a>
+      <a class="text-sm font-medium py-2 text-text-secondary hover:text-primary transition-colors" href="#beneficios">Beneficios</a>
+      <div class="flex flex-col gap-2 pt-2 border-t border-outline mt-2">
+        <button id="open-login-mobile" class="btn-secondary w-full cursor-pointer">Iniciar Sesión</button>
+        <button id="open-register-mobile" class="btn-primary w-full cursor-pointer">Registrarse</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── HERO ───────────────────────────────────────── -->
+<section class="relative overflow-hidden pt-16 pb-20 lg:pt-28 lg:pb-32" id="inicio">
+  <!-- Background effects -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div class="flex flex-col items-center text-center max-w-4xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-8 animate-fade-in-up">
+        <span class="material-symbols-rounded text-[16px]">rocket_launch</span>
+        Plataforma B2B de Adquisición Inteligente
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-7xl font-black leading-tight tracking-tight text-text-primary mb-6 animate-fade-in-up stagger-1">
+        Solicita, cotiza y<br>
+        <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">paga a crédito</span>
+      </h1>
+
+      <p class="text-lg sm:text-xl text-text-secondary mb-10 max-w-2xl animate-fade-in-up stagger-2">
+        DownLabs conecta tu empresa con los mejores proveedores. Crea solicitudes de productos, recibe cotizaciones competitivas y gestiona pagos a crédito — todo en una sola plataforma.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 animate-fade-in-up stagger-3">
+        <button id="btn-start" class="btn-primary text-base !py-4 !px-8 cursor-pointer">
+          <span class="material-symbols-rounded text-[20px]">arrow_forward</span>
+          Comenzar ahora
+        </button>
+        <a href="#como-funciona" class="btn-secondary text-base !py-4 !px-8">
+          <span class="material-symbols-rounded text-[20px]">play_circle</span>
+          Cómo funciona
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-3 gap-6 sm:gap-12 mt-16 pt-8 border-t border-outline/50 w-full max-w-xl animate-fade-in-up stagger-4">
+        <div class="text-center">
+          <p class="text-2xl sm:text-3xl font-black text-primary">500+</p>
+          <p class="text-xs sm:text-sm text-text-muted mt-1">Proveedores</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl sm:text-3xl font-black text-secondary">10K+</p>
+          <p class="text-xs sm:text-sm text-text-muted mt-1">Productos</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl sm:text-3xl font-black text-primary-light">98%</p>
+          <p class="text-xs sm:text-sm text-text-muted mt-1">Satisfacción</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CÓMO FUNCIONA ──────────────────────────────── -->
+<section class="py-20 bg-surface-1" id="como-funciona">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <p class="text-primary font-semibold text-sm tracking-wider uppercase mb-3">Proceso Simple</p>
+      <h2 class="text-3xl sm:text-4xl font-black text-text-primary">¿Cómo funciona?</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Step 1 -->
+      <div class="glass-card glass-card-hover p-6 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-rounded text-primary text-2xl">edit_note</span>
+        </div>
+        <div class="text-xs font-bold text-primary mb-2">PASO 1</div>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Crea tu solicitud</h3>
+        <p class="text-sm text-text-secondary">Describe qué necesitas, agrega especificaciones y nivel de urgencia.</p>
+      </div>
+      <!-- Step 2 -->
+      <div class="glass-card glass-card-hover p-6 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-info/20 to-info/40 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-rounded text-info text-2xl">search</span>
+        </div>
+        <div class="text-xs font-bold text-info mb-2">PASO 2</div>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Buscamos los mejores</h3>
+        <p class="text-sm text-text-secondary">Nuestro equipo busca entre cientos de proveedores verificados las mejores opciones.</p>
+      </div>
+      <!-- Step 3 -->
+      <div class="glass-card glass-card-hover p-6 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-warning/20 to-warning/40 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-rounded text-warning text-2xl">request_quote</span>
+        </div>
+        <div class="text-xs font-bold text-warning mb-2">PASO 3</div>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Recibe tu cotización</h3>
+        <p class="text-sm text-text-secondary">Recibes cotización con productos, precios finales y opciones de pago a crédito.</p>
+      </div>
+      <!-- Step 4 -->
+      <div class="glass-card glass-card-hover p-6 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-success/20 to-success/40 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-rounded text-success text-2xl">verified</span>
+        </div>
+        <div class="text-xs font-bold text-success mb-2">PASO 4</div>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Acepta y paga a crédito</h3>
+        <p class="text-sm text-text-secondary">Acepta la cotización, recibe tus productos y paga en cómodas mensualidades.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── BENEFICIOS ──────────────────────────────────── -->
+<section class="py-20" id="beneficios">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <p class="text-primary font-semibold text-sm tracking-wider uppercase mb-3">Ventajas</p>
+      <h2 class="text-3xl sm:text-4xl font-black text-text-primary">¿Por qué DownLabs?</h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="glass-card glass-card-hover p-6">
+        <span class="material-symbols-rounded text-primary text-3xl mb-4 block">savings</span>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Precios competitivos</h3>
+        <p class="text-sm text-text-secondary">Accede a precios corporativos con nuestra red de más de 500 proveedores verificados.</p>
+      </div>
+      <div class="glass-card glass-card-hover p-6">
+        <span class="material-symbols-rounded text-secondary text-3xl mb-4 block">credit_score</span>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Pago a crédito</h3>
+        <p class="text-sm text-text-secondary">Financia tus compras con plazos flexibles y tasas preferenciales para tu empresa.</p>
+      </div>
+      <div class="glass-card glass-card-hover p-6">
+        <span class="material-symbols-rounded text-info text-3xl mb-4 block">speed</span>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Respuesta rápida</h3>
+        <p class="text-sm text-text-secondary">Cotizaciones en menos de 24 horas con seguimiento en tiempo real de tu solicitud.</p>
+      </div>
+      <div class="glass-card glass-card-hover p-6">
+        <span class="material-symbols-rounded text-warning text-3xl mb-4 block">verified_user</span>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Proveedores verificados</h3>
+        <p class="text-sm text-text-secondary">Trabajamos solo con proveedores con calificación 4+ estrellas y track record comprobado.</p>
+      </div>
+      <div class="glass-card glass-card-hover p-6">
+        <span class="material-symbols-rounded text-danger text-3xl mb-4 block">monitoring</span>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Dashboard en tiempo real</h3>
+        <p class="text-sm text-text-secondary">Monitorea tus solicitudes, cotizaciones y pagos desde un panel centralizado.</p>
+      </div>
+      <div class="glass-card glass-card-hover p-6">
+        <span class="material-symbols-rounded text-success text-3xl mb-4 block">support_agent</span>
+        <h3 class="text-lg font-bold text-text-primary mb-2">Soporte dedicado</h3>
+        <p class="text-sm text-text-secondary">Un operador asignado a cada solicitud para garantizar la mejor experiencia.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─────────────────────────────────────── -->
+<footer class="border-t border-outline py-12 bg-surface-1">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-dark to-primary flex items-center justify-center">
+          <span class="material-symbols-rounded text-white text-lg">inventory_2</span>
+        </div>
+        <span class="text-lg font-black tracking-tight text-text-primary">Down<span class="text-primary">Labs</span></span>
+      </div>
+      <p class="text-sm text-text-muted">&copy; 2026 DownLabs. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── MODAL LOGIN ──────────────────────────────── -->
+<div id="modal-login" class={`${loginRequired ? '' : 'hidden'} fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4`} aria-modal="true" role="dialog">
+  <div class="w-full max-w-[440px] glass-card flex flex-col overflow-hidden animate-fade-in-up">
+    <div class="p-8 pb-0">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <div class="flex items-center gap-2 text-primary mb-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-dark to-primary flex items-center justify-center">
+              <span class="material-symbols-rounded text-white text-lg">inventory_2</span>
+            </div>
+            <span class="text-xl font-black">Down<span class="text-primary-light">Labs</span></span>
+          </div>
+          <h3 class="text-text-primary text-xl font-bold">Bienvenido de nuevo</h3>
+          <p class="text-text-muted text-sm">Ingresa tu correo para acceder a tu panel.</p>
+        </div>
+        <button id="close-login" class="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-all cursor-pointer" aria-label="Cerrar">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <form id="login-form" class="flex flex-col gap-4">
+        <div id="login-error" class="hidden text-sm text-danger bg-danger/10 border border-danger/30 rounded-lg px-4 py-3"></div>
+
+        <div>
+          <label class="input-label">Correo electrónico</label>
+          <div class="relative">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">mail</span>
+            <input id="login-email" class="input-field !pl-10" type="email" placeholder="nombre@empresa.com" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="input-label">Contraseña</label>
+          <div class="relative">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">lock</span>
+            <input id="login-password" class="input-field !pl-10" type="password" placeholder="••••••••" />
+          </div>
+        </div>
+
+        <button type="submit" id="login-submit" class="btn-primary w-full mt-2 cursor-pointer">
+          <span id="login-btn-text">Iniciar Sesión</span>
+          <span id="login-spinner" class="hidden material-symbols-rounded animate-spin">progress_activity</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="px-8 py-5 mt-4 border-t border-outline text-center">
+      <p class="text-sm text-text-muted">
+        ¿No tienes cuenta?
+        <button id="switch-to-register" class="text-primary font-bold hover:underline cursor-pointer">Regístrate</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL REGISTRO ───────────────────────────── -->
+<div id="modal-register" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" aria-modal="true" role="dialog">
+  <div class="w-full max-w-[440px] glass-card flex flex-col overflow-hidden animate-fade-in-up max-h-[90vh] overflow-y-auto">
+    <div class="p-8 pb-0">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <div class="flex items-center gap-2 text-primary mb-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-dark to-primary flex items-center justify-center">
+              <span class="material-symbols-rounded text-white text-lg">inventory_2</span>
+            </div>
+            <span class="text-xl font-black">Down<span class="text-primary-light">Labs</span></span>
+          </div>
+          <h3 class="text-text-primary text-xl font-bold">Crear cuenta</h3>
+          <p class="text-text-muted text-sm">Registra tu empresa para empezar a solicitar productos.</p>
+        </div>
+        <button id="close-register" class="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-all cursor-pointer" aria-label="Cerrar">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <form id="register-form" class="flex flex-col gap-4">
+        <div id="register-error" class="hidden text-sm text-danger bg-danger/10 border border-danger/30 rounded-lg px-4 py-3"></div>
+
+        <div>
+          <label class="input-label">Nombre de la empresa</label>
+          <div class="relative">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">business</span>
+            <input id="reg-empresa" class="input-field !pl-10" type="text" placeholder="Mi Empresa S.A. de C.V." required />
+          </div>
+        </div>
+
+        <div>
+          <label class="input-label">Correo electrónico</label>
+          <div class="relative">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">mail</span>
+            <input id="reg-correo" class="input-field !pl-10" type="email" placeholder="compras@miempresa.com" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="input-label">Teléfono de contacto</label>
+          <div class="relative">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">phone</span>
+            <input id="reg-telefono" class="input-field !pl-10" type="tel" placeholder="+52 833 123 4567" />
+          </div>
+        </div>
+
+        <div>
+          <label class="input-label">Contraseña</label>
+          <div class="relative">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">lock</span>
+            <input id="reg-password" class="input-field !pl-10" type="password" placeholder="••••••••" />
+          </div>
+          <p class="text-xs text-text-muted mt-1">Mínimo 8 caracteres</p>
+        </div>
+
+        <button type="submit" id="register-submit" class="btn-primary w-full mt-2 cursor-pointer">
+          <span id="reg-btn-text">Crear cuenta</span>
+          <span id="reg-spinner" class="hidden material-symbols-rounded animate-spin">progress_activity</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="px-8 py-5 mt-4 border-t border-outline text-center">
+      <p class="text-sm text-text-muted">
+        ¿Ya tienes cuenta?
+        <button id="switch-to-login" class="text-primary font-bold hover:underline cursor-pointer">Iniciar Sesión</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = (id: string) => document.getElementById(id);
+  const modalLogin = $('modal-login');
+  const modalRegister = $('modal-register');
+
+  function openModal(modal: HTMLElement | null) {
+    modal?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(modal: HTMLElement | null) {
+    modal?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // Open/close buttons
+  $('open-login')?.addEventListener('click', () => openModal(modalLogin));
+  $('open-login-mobile')?.addEventListener('click', () => openModal(modalLogin));
+  $('open-register')?.addEventListener('click', () => openModal(modalRegister));
+  $('open-register-mobile')?.addEventListener('click', () => openModal(modalRegister));
+  $('btn-start')?.addEventListener('click', () => openModal(modalRegister));
+  $('close-login')?.addEventListener('click', () => closeModal(modalLogin));
+  $('close-register')?.addEventListener('click', () => closeModal(modalRegister));
+
+  // Switch modals
+  $('switch-to-register')?.addEventListener('click', () => {
+    closeModal(modalLogin);
+    openModal(modalRegister);
+  });
+  $('switch-to-login')?.addEventListener('click', () => {
+    closeModal(modalRegister);
+    openModal(modalLogin);
+  });
+
+  // Close on backdrop / Escape
+  [modalLogin, modalRegister].forEach(modal => {
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal(modal);
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeModal(modalLogin); closeModal(modalRegister); }
+  });
+
+  // Mobile menu
+  $('mobile-menu-btn')?.addEventListener('click', () => {
+    $('mobile-menu')?.classList.toggle('hidden');
+  });
+
+  // ─── LOGIN FORM ───────────────────────────────────
+  $('login-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = ($('login-email') as HTMLInputElement)?.value;
+    const password = ($('login-password') as HTMLInputElement)?.value || 'demo';
+    const errorDiv = $('login-error')!;
+    const btnText = $('login-btn-text')!;
+    const spinner = $('login-spinner')!;
+
+    errorDiv.classList.add('hidden');
+    btnText.textContent = 'Ingresando...';
+    spinner.classList.remove('hidden');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorDiv.textContent = data.error || 'Error al iniciar sesión';
+        errorDiv.classList.remove('hidden');
+        btnText.textContent = 'Iniciar Sesión';
+        spinner.classList.add('hidden');
+        return;
+      }
+
+      window.location.href = '/dashboard';
+    } catch (err) {
+      errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+      errorDiv.classList.remove('hidden');
+      btnText.textContent = 'Iniciar Sesión';
+      spinner.classList.add('hidden');
+    }
+  });
+
+  // ─── REGISTER FORM ────────────────────────────────
+  $('register-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const empresa = ($('reg-empresa') as HTMLInputElement)?.value;
+    const correo = ($('reg-correo') as HTMLInputElement)?.value;
+    const telefono = ($('reg-telefono') as HTMLInputElement)?.value;
+    const password = ($('reg-password') as HTMLInputElement)?.value || 'demo';
+    const errorDiv = $('register-error')!;
+    const btnText = $('reg-btn-text')!;
+    const spinner = $('reg-spinner')!;
+
+    errorDiv.classList.add('hidden');
+    btnText.textContent = 'Creando cuenta...';
+    spinner.classList.remove('hidden');
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre_empresa: empresa, correo, telefono, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorDiv.textContent = data.error || 'Error al registrarse';
+        errorDiv.classList.remove('hidden');
+        btnText.textContent = 'Crear cuenta';
+        spinner.classList.add('hidden');
+        return;
+      }
+
+      window.location.href = '/dashboard';
+    } catch (err) {
+      errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+      errorDiv.classList.remove('hidden');
+      btnText.textContent = 'Crear cuenta';
+      spinner.classList.add('hidden');
+    }
+  });
+</script>
+
 </Layout>
